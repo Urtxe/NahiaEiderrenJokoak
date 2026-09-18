@@ -1,0 +1,22 @@
+{
+  "name": "nahia-eta-eiderren-jokoak",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vitest": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  },
+  "devDependencies": {}
+}
