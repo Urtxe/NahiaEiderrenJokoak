@@ -11,8 +11,10 @@ Aplicación local de juegos educativos para primaria, en euskera y castellano.
 
 ```bash
 npm install
-npm run dev
+npm start
 ```
+
+Abre la dirección que muestra el comando (normalmente `http://localhost:5173`). No abras `index.html` directamente: es la entrada de Vite y necesita el servidor para transformar `src/main.tsx`.
 
 Para comprobar el proyecto: `npm test` y `npm run build`.
 
@@ -24,16 +26,21 @@ Necesitas Node.js 20 o superior.
 
 ```bash
 npm install
-npm run dev
+npm start
 ```
 
 Para preparar la versión de producción:
 
 ```bash
 npm run build
+npm run preview
 ```
 
 También se pueden ejecutar las pruebas de lógica con `npm test`.
+
+## GitHub Pages
+
+Al subir cambios a la rama `main`, el flujo de GitHub Actions compila y publica automáticamente `dist` en `https://urtxe.github.io/NahiaEiderrenJokoak/`. En la configuración del repositorio, selecciona **Settings → Pages → Source → GitHub Actions** una única vez.
 
 ## Datos y privacidad
 
