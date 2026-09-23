@@ -227,6 +227,10 @@ button:focus-visible {
   background: #f0ecfa;
   color: #544b79;
 }
+@media (max-width: 480px) {
+  .home-link { padding: 8px; }
+  .home-link span { display: none; }
+}
 .danger {
   background: #d94c68;
   color: #fff;
