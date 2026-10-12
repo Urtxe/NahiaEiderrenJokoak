@@ -17,7 +17,6 @@ const wordSets: Record<SchoolLevel, Word[]> = {
   ],
 };
 const tr = (lang: Language, eu: string, es: string) => lang === 'eu' ? eu : es;
-const coordKey = (r: number, c: number) => `${r},${c}`;
 
 function makeWordGrid(level: SchoolLevel, words: Word[]): Cell[][] {
   const size = level === 'lh1' ? 7 : 10;
@@ -116,36 +115,72 @@ export function MathAdventure({ lang, level, onComplete }: { lang: Language; lev
   </section>;
 }
 
-type EnglishCard = { image: string; prompt: string; answer: string; options: string[]; speak: string };
-const englishCards: Record<SchoolLevel, EnglishCard[]> = {
+type EnglishWord = { text: string; image: string; category: string };
+type VocabRound = { kind: 'picture-word' | 'word-picture' | 'listen-picture'; word: EnglishWord; options: EnglishWord[] };
+const englishWords: Record<SchoolLevel, EnglishWord[]> = {
   lh1: [
-    { image: '🐱', prompt: 'What is it?', answer: 'A cat', options: ['A cat', 'A dog', 'A fish'], speak: 'A cat' },
-    { image: '🔴', prompt: 'What colour is it?', answer: 'Red', options: ['Red', 'Blue', 'Green'], speak: 'Red' },
-    { image: '🍎', prompt: 'What is it?', answer: 'An apple', options: ['An apple', 'A banana', 'A pear'], speak: 'An apple' },
-    { image: '🐶', prompt: 'What is it?', answer: 'A dog', options: ['A bird', 'A dog', 'A cat'], speak: 'A dog' },
-    { image: '🔵', prompt: 'What colour is it?', answer: 'Blue', options: ['Yellow', 'Blue', 'Red'], speak: 'Blue' },
-    { image: '☀️', prompt: 'What is it?', answer: 'The sun', options: ['The moon', 'The sun', 'A star'], speak: 'The sun' },
+    { text: 'CAT', image: '🐱', category: 'animals' }, { text: 'DOG', image: '🐶', category: 'animals' },
+    { text: 'FISH', image: '🐟', category: 'animals' }, { text: 'BIRD', image: '🐦', category: 'animals' },
+    { text: 'RED', image: '🔴', category: 'colours' }, { text: 'BLUE', image: '🔵', category: 'colours' },
+    { text: 'GREEN', image: '🟢', category: 'colours' }, { text: 'SUN', image: '☀️', category: 'nature' },
+    { text: 'MOON', image: '🌙', category: 'nature' }, { text: 'APPLE', image: '🍎', category: 'food' },
+    { text: 'BOOK', image: '📘', category: 'school' }, { text: 'PENCIL', image: '✏️', category: 'school' },
   ],
   lh3: [
-    { image: '🍌', prompt: 'I like to eat…', answer: 'a banana', options: ['a banana', 'a pencil', 'a chair'], speak: 'I like to eat a banana' },
-    { image: '📚', prompt: 'Where is the book?', answer: 'On the desk', options: ['On the desk', 'Under the bed', 'In the garden'], speak: 'The book is on the desk' },
-    { image: '🌧️', prompt: 'What is the weather like?', answer: 'It is rainy', options: ['It is sunny', 'It is rainy', 'It is windy'], speak: 'It is rainy' },
-    { image: '👧', prompt: 'Who is she?', answer: 'She is my sister', options: ['He is my brother', 'She is my sister', 'It is my dog'], speak: 'She is my sister' },
-    { image: '🧊', prompt: 'How do you feel?', answer: 'I am cold', options: ['I am hungry', 'I am happy', 'I am cold'], speak: 'I am cold' },
-    { image: '🐦', prompt: 'Choose the sentence', answer: 'The bird can fly', options: ['The bird can fly', 'The bird can swim', 'The bird can read'], speak: 'The bird can fly' },
+    { text: 'FAMILY', image: '👨‍👩‍👧', category: 'family' }, { text: 'SISTER', image: '👧', category: 'family' },
+    { text: 'BROTHER', image: '👦', category: 'family' }, { text: 'TEACHER', image: '👩‍🏫', category: 'school' },
+    { text: 'PENCIL', image: '✏️', category: 'school' }, { text: 'SCHOOL', image: '🏫', category: 'school' },
+    { text: 'ORANGE', image: '🍊', category: 'food' }, { text: 'BREAD', image: '🍞', category: 'food' },
+    { text: 'BANANA', image: '🍌', category: 'food' }, { text: 'CLOUD', image: '☁️', category: 'weather' },
+    { text: 'RAINY', image: '🌧️', category: 'weather' }, { text: 'SUNNY', image: '🌞', category: 'weather' },
+    { text: 'JACKET', image: '🧥', category: 'clothes' }, { text: 'SHOES', image: '👟', category: 'clothes' },
   ],
 };
+const makeVocabRounds = (level: SchoolLevel): VocabRound[] => {
+  const selected = shuffle(englishWords[level]).slice(0, 7);
+  return selected.map((word, index) => ({
+    kind: index < 3 ? 'picture-word' : index < 5 ? 'word-picture' : 'listen-picture',
+    word,
+    options: shuffle([word, ...shuffle(englishWords[level].filter(item => item.text !== word.text)).slice(0, 2)]),
+  }));
+};
+
+function EnglishWordSearch({ lang, level, words, onFound }: { lang: Language; level: SchoolLevel; words: EnglishWord[]; onFound: () => void }) {
+  const puzzleWords: Word[] = words.map(word => ({ text: word.text, clue: word.text, icon: word.image }));
+  const [grid] = useState(() => makeWordGrid(level, puzzleWords));
+  const [selected, setSelected] = useState<number[]>([]); const [found, setFound] = useState<number[]>([]); const [message, setMessage] = useState('');
+  const size = grid.length;
+  const selectedWord = selected.map(i => grid[Math.floor(i / size)][i % size].letter).join('');
+  const check = () => {
+    if (selected.length < 2) return;
+    const start = selected[0], end = selected[selected.length - 1];
+    const r1 = Math.floor(start / size), c1 = start % size, r2 = Math.floor(end / size), c2 = end % size;
+    const dr = Math.sign(r2 - r1), dc = Math.sign(c2 - c1);
+    const straight = r1 === r2 || c1 === c2;
+    const contiguous = straight && selected.every((cell, index) => cell === (r1 + dr * index) * size + c1 + dc * index);
+    const wordIndex = puzzleWords.findIndex((word, index) => !found.includes(index) && (word.text === selectedWord || word.text === [...selectedWord].reverse().join('')));
+    if (contiguous && wordIndex >= 0 && selected.length === puzzleWords[wordIndex].text.length) {
+      const next = [...found, wordIndex]; setFound(next); setSelected([]); setMessage('Great! Word found!');
+      if (next.length === puzzleWords.length) onFound();
+    } else setMessage(tr(lang, 'Saiatu berriro; begiratu hitzen zerrenda.', 'Prueba otra vez; mira la lista de palabras.'));
+  };
+  return <div className="english-search"><h3>🔎 Word search</h3><p>{tr(lang, 'Aurkitu hitz hauek letrez letra.', 'Encuentra estas palabras letra a letra.')}</p><div className="english-search-layout"><div className="letter-grid" style={{ '--grid-size': size } as React.CSSProperties}>{grid.flatMap((row, r) => row.map((cell, c) => { const i = r * size + c; return <button key={i} className={`letter-cell ${selected.includes(i) ? 'chosen' : ''} ${found.some(w => cell.word === w) && cell.word >= 0 ? 'word-found' : ''}`} onClick={() => setSelected(current => current.includes(i) ? current.slice(0, current.indexOf(i)) : [...current, i])} aria-label={`${cell.letter}, ${r + 1}, ${c + 1}`}>{cell.letter}</button>; }))}</div><div className="english-word-list">{puzzleWords.map((word, i) => <div className={found.includes(i) ? 'done' : ''} key={word.text}><span>{word.icon}</span><strong>{word.text}</strong>{found.includes(i) && <b>✓</b>}</div>)}<p className="word-preview">{selectedWord}</p><button className="primary" disabled={selected.length < 2} onClick={check}>{tr(lang, 'Egiaztatu', 'Comprobar')} →</button>{message && <p className="good-feedback" role="status">{message}</p>}</div></div></div>;
+}
 
 export function EnglishQuest({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
-  const cards = useMemo(() => shuffle(englishCards[level]), [level]); const [step, setStep] = useState(0); const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const [message, setMessage] = useState(''); const card = cards[step];
-  const speak = () => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(card.speak); utterance.lang = 'en-GB'; window.speechSynthesis.speak(utterance); } };
-  const choose = (answer: string) => {
-    if (answer !== card.answer) { setMistake(true); setMessage(tr(lang, 'Saiatu berriro; entzun esaldia!', 'Prueba otra vez; ¡escucha la frase!')); return; }
-    const score = correct + (mistake ? 0 : 1); setCorrect(score); setMessage(tr(lang, 'Excellent! Esan ozenki nirekin.', '¡Excellent! Repítelo en voz alta.')); speak();
-    window.setTimeout(() => { if (step + 1 === cards.length) onComplete({ game: 'english', score, correct: score, total: cards.length, stars: calculateStars(score, cards.length) }); else { setStep(step + 1); setMistake(false); setMessage(''); } }, 900);
+  const rounds = useMemo(() => makeVocabRounds(level), [level]); const [step, setStep] = useState(0); const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const [message, setMessage] = useState(''); const [searchDone, setSearchDone] = useState(false);
+  const card = rounds[step]; const searchWords = rounds.slice(0, 4).map(round => round.word); const total = rounds.length + searchWords.length;
+  const speak = (word: EnglishWord) => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(word.text.toLowerCase()); utterance.lang = 'en-GB'; window.speechSynthesis.speak(utterance); } };
+  const choose = (word: EnglishWord) => {
+    if (word.text !== card.word.text) { setMistake(true); setMessage(tr(lang, 'Saiatu berriro; begiratu irudia edo entzun hitza.', 'Prueba otra vez; mira la imagen o escucha la palabra.')); return; }
+    const score = correct + (mistake ? 0 : 1); setCorrect(score); setMessage('Great job!'); speak(card.word);
+    window.setTimeout(() => { setStep(step + 1); setMistake(false); setMessage(''); }, 650);
   };
-  return <section className="game-shell learning-game"><div className="game-top"><div><span className="eyebrow">🇬🇧 ENGLISH · {level.toUpperCase()}</span><h2>{level === 'lh1' ? 'Hello, little explorer!' : 'English explorer!'}</h2><p>{tr(lang, 'Begiratu irudia eta aukeratu ingelesezko hitza.', 'Mira la imagen y elige la palabra en inglés.')}</p></div><span className="counter">{step + 1} / {cards.length}</span></div>
-    <div className="english-card"><div className="english-picture" aria-hidden="true">{card.image}</div><h3>{card.prompt}</h3><div className="english-answers">{card.options.map(option => <button className="answer" key={option} onClick={() => choose(option)}>{option}</button>)}</div><button className="read-button" onClick={speak}>🔊 Listen</button>{message && <p role="status" className={mistake ? 'gentle-feedback' : 'good-feedback'}>{message}</p>}</div>
-    <p className="learning-note">{level === 'lh1' ? tr(lang, 'LH1: koloreak, animaliak eta objektuak; irudia, entzumena eta hitz bakarrak.', 'LH1: colores, animales y objetos; imagen, escucha y palabras sencillas.') : tr(lang, 'LH3: hiztegia eta esaldi laburrak, eguneroko egoeretan.', 'LH3: vocabulario y frases cortas en situaciones cotidianas.')}</p>
+  const finishSearch = () => { setSearchDone(true); const score = correct + searchWords.length; onComplete({ game: 'english', score, correct: score, total, stars: calculateStars(score, total) }); };
+  const progress = step < rounds.length ? step + 1 : rounds.length + (searchDone ? searchWords.length : 0);
+  return <section className="game-shell learning-game"><div className="game-top"><div><span className="eyebrow">🇬🇧 ENGLISH VOCABULARY · {level.toUpperCase()}</span><h2>{level === 'lh1' ? 'Picture & Word Adventure' : 'Vocabulary Explorer'}</h2><p>{tr(lang, 'Irudia ikusi, hitza irakurri eta ingelesez entzun.', 'Mira la imagen, lee la palabra y escúchala en inglés.')}</p></div><span className="counter">{progress} / {total}</span></div>
+    {step < rounds.length ? <div className="english-card"><span className="exercise-type">{card.kind === 'picture-word' ? tr(lang, 'IRUDIA → HITZA', 'IMAGEN → PALABRA') : card.kind === 'word-picture' ? tr(lang, 'HITZA → IRUDIA', 'PALABRA → IMAGEN') : tr(lang, 'ENTZUN → IRUDIA', 'ESCUCHA → IMAGEN')}</span>{card.kind === 'picture-word' ? <><div className="english-picture" aria-hidden="true">{card.word.image}</div><h3>What is it?</h3></> : card.kind === 'word-picture' ? <><h3 className="english-target">{card.word.text}</h3><p>{tr(lang, 'Aukeratu hitzari dagokion irudia.', 'Elige la imagen que corresponde a la palabra.')}</p></> : <><div className="english-listen">🎧</div><h3>Listen and choose the picture</h3></>}
+      <div className={card.kind === 'picture-word' ? 'english-answers' : 'english-image-options'}>{card.options.map(option => <button className="answer" key={option.text} onClick={() => choose(option)}>{card.kind === 'picture-word' ? option.text : <><span>{option.image}</span><small>{option.text}</small></>}</button>)}</div><button className="read-button" onClick={() => speak(card.word)}>🔊 Listen</button>{message && <p role="status" className={mistake ? 'gentle-feedback' : 'good-feedback'}>{message}</p>}</div> : <EnglishWordSearch lang={lang} level={level} words={searchWords} onFound={finishSearch} />}
+    <p className="learning-note">{level === 'lh1' ? tr(lang, 'LH1: animaliak, koloreak, natura, janaria eta eskolako hitzak.', 'LH1: animales, colores, naturaleza, comida y vocabulario escolar.') : tr(lang, 'LH3: familia, eskola, janaria, eguraldia eta arropa.', 'LH3: familia, escuela, comida, tiempo atmosférico y ropa.')}</p>
   </section>;
 }
