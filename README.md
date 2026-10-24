@@ -22,7 +22,7 @@ Portal local de juegos educativos, alegre y seguro, pensado para Nahia y Eider. 
 
 ## Requisitos y uso
 
-Necesitas Node.js 20 o superior.
+Necesitas Node.js 24.22.1.
 
 ```bash
 npm install
