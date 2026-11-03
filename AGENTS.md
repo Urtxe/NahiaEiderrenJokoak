@@ -4,7 +4,7 @@ Aplicación educativa local para Nahia, Eider o ambas. Es una SPA de React + Typ
 
 ## Recorrido de la app
 
-`index.html` → `src/main.tsx` → `src/App.tsx`. `App` controla la pantalla mediante `view` (`welcome`, `menu`, `game`, `progress`, `settings`), el perfil activo (`nahia`, `eider`, `team`), el juego y los diálogos. No hay router. El selector de perfil está en `welcome`; `menu` lista los siete juegos. Cada juego se monta desde `App` al entrar en `game` y se desmonta al salir. El botón Inicio vuelve al selector de perfiles; salir de una partida en curso pide confirmación. Las pantallas de progreso y ajustes también viven en `App.tsx`.
+`index.html` → `src/main.tsx` → `src/App.tsx`. `App` controla la pantalla mediante `view` (`welcome`, `menu`, `game`, `board`, `progress`, `settings`), el perfil activo (`nahia`, `eider`, `team`), el juego y los diálogos. No hay router. El selector de perfil está en `welcome`; `menu` lista los juegos y la pizarra creativa. Cada juego se monta desde `App` al entrar en `game` y se desmonta al salir. El botón Inicio vuelve al selector de perfiles; salir de una partida en curso pide confirmación. Las pantallas de progreso y ajustes también viven en `App.tsx`.
 
 Al terminar una actividad, el juego llama a `onComplete(GameResult)`. `App.complete` llama a `useProgress.saveResult(perfil, resultado)` y muestra el diálogo final. La ciudad y la carretera guardan además su estado propio mediante `onCityChange` y `onRoadUpdate`; revisa esas rutas antes de cambiar cuándo se abandona una partida. El progreso completado queda en el perfil con el que se jugó. La partida en curso de los demás juegos no se guarda al salir.
 
@@ -19,11 +19,11 @@ Al terminar una actividad, el juego llama a `onComplete(GameResult)`. `App.compl
 | Ingredientes, nombres de pociones y edificios | `src/data/content.ts` |
 | Dificultad automática, preguntas, puntuación y logros | `src/utils/gameLogic.ts` |
 | Coches, circuitos y reglas auxiliares de la carretera | `src/utils/roadLogic.ts` |
-| Mecánica de un juego concreto | `src/games/<Juego>.tsx` |
+| Mecánica de un juego concreto y pizarra | `src/games/<Juego>.tsx` |
 | Estilos globales y de juegos | `src/styles.css` |
 | Entrada y URL base de GitHub Pages | `src/main.tsx`, `vite.config.ts` |
 
-Juegos: `AnimalRescue`, `PotionLab`, `QuizRace`, `MuseumDetectives`, `MagicCity`, `StarRoad` y `NumberGarden`, todos en `src/games/`. Para agregar otro juego, actualizar el tipo `GameId`, la ficha y el render en `App`, los textos y los valores iniciales pertinentes; seguir el patrón de `GameResult` y `onComplete`.
+Juegos: `AnimalRescue`, `PotionLab`, `QuizRace`, `MuseumDetectives`, `MagicCity`, `StarRoad`, `NumberGarden`, `WordSearch`, `MathAdventure`, `EnglishQuest`, `ShapeBuilder`, `StoryOrder`, `NatureSort` y `TogetherQuest`, todos en `src/games/`. La pizarra `CreativeBoard` no es puntuable y guarda su contenido localmente por perfil. Para agregar otro juego, actualizar `GameId`, la ficha y el render en `App`, los textos y los valores iniciales pertinentes; seguir el patrón de `GameResult` y `onComplete`.
 
 ## Datos y comprobación
 
