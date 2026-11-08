@@ -1,0 +1,32 @@
+.board-game { max-width: 760px; margin-inline: auto; }
+.board-game-help { margin: 12px auto 18px; max-width: 680px; color: #605b70; line-height: 1.55; text-align: center; }
+.checkers-board { width: min(100%, 520px); aspect-ratio: 1; margin: 16px auto; display: grid; grid-template-columns: repeat(8, 1fr); border: 5px solid #76533c; border-radius: 14px; overflow: hidden; box-shadow: 0 9px 24px #4733202b; touch-action: manipulation; }
+.checkers-square { position: relative; border: 0; padding: 0; display: grid; place-items: center; min-width: 0; min-height: 0; }
+.checkers-square.light { background: #f2dfbd; }
+.checkers-square.dark { background: #a86f49; }
+.checkers-square.selected { box-shadow: inset 0 0 0 4px #ffe46b; z-index: 1; }
+.checkers-square.destination { cursor: pointer; }
+.checkers-square:focus-visible, .tic-cell:focus-visible { outline: 4px solid #5140a3; outline-offset: -4px; z-index: 2; }
+.checker-piece { width: 76%; height: 76%; border-radius: 50%; display: grid; place-items: center; font-size: clamp(14px, 5vw, 32px); font-weight: 900; box-shadow: inset 0 -5px 0 #0003, 0 3px 4px #0004; border: 3px solid #ffffff9c; }
+.checker-piece.nahia, .checker-swatch.nahia { background: #ed7793; color: #fff; }
+.checker-piece.eider, .checker-swatch.eider { background: #558bdb; color: #fff; }
+.checker-piece.king { border-color: #ffde65; box-shadow: inset 0 -5px 0 #0003, 0 0 0 3px #ffd54b, 0 3px 4px #0004; }
+.checkers-dot { position: absolute; width: 24%; height: 24%; border-radius: 50%; background: #ffffffb5; }
+.checkers-square:has(.checker-piece).destination .checkers-dot { display: none; }
+.board-game-legend { display: flex; justify-content: center; gap: 24px; align-items: center; margin: 12px auto; color: #555064; font-weight: 700; }
+.board-game-legend span { display: inline-flex; gap: 8px; align-items: center; }
+.checker-swatch { display: inline-block; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 -3px #0003; }
+.board-game-result { margin: 16px auto; padding: 14px 18px; width: fit-content; max-width: 100%; border: 2px solid #8bc29b; border-radius: 16px; background: #e8faeb; color: #205d32; font-size: clamp(1.2rem, 4vw, 1.8rem); text-align: center; box-shadow: 0 4px 0 #c9e8cf; }
+.tic-board { width: min(100%, 390px); aspect-ratio: 1; margin: 20px auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; border-radius: 22px; background: #8f7cc3; box-shadow: 0 9px 0 #7564a6, 0 14px 24px #473b6926; }
+.tic-cell { border: 0; border-radius: 14px; background: #fff; color: #725da8; font-size: clamp(3rem, 16vw, 6rem); line-height: 1; font-weight: 800; display: grid; place-items: center; min-width: 0; min-height: 0; transition: transform .12s, background .12s; }
+.tic-cell:not(:disabled):hover { background: #f7f3ff; transform: translateY(-2px); }
+.tic-cell.mark-x { color: #e87592; }
+.tic-cell.mark-o { color: #568bda; }
+.tic-x { color: #e87592; font-size: 1.5rem; }
+.tic-o { color: #568bda; font-size: 1.5rem; }
+@media (max-width: 520px) {
+  .checkers-board { border-width: 3px; border-radius: 8px; }
+  .checker-piece { border-width: 2px; }
+  .tic-board { gap: 6px; padding: 7px; border-radius: 16px; }
+  .tic-cell { border-radius: 10px; }
+}
