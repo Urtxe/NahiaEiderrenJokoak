@@ -7,7 +7,7 @@ const base = '/NahiaEiderrenJokoak/';
 const offlineCache: Plugin = {
   name: 'offline-cache',
   generateBundle(_, bundle) {
-    const assets = Object.keys(bundle).filter((file) => /\.(js|css)$/.test(file));
+    const assets = Object.keys(bundle).filter((file) => /\.(js|css|webp)$/.test(file));
     const urls = [
       base,
       `${base}index.html`,
