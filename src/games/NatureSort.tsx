@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAnswerFeedback } from './AnswerFeedback';
 import type { GameResult, Language, SchoolLevel } from '../types';
 import { calculateStars, shuffle } from '../utils/gameLogic';
 
@@ -71,6 +72,7 @@ const roundsFor = (lang: Language, level: SchoolLevel): Round[] => {
 };
 
 export function NatureSort({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+  const { advancing, showFeedback } = useAnswerFeedback();
   const [rounds] = useState(() => shuffle(roundsFor(lang, level)).slice(0, 5).map((item) => {
     const choices = shuffle(item.choices);
     return { ...item, choices, answer: choices.findIndex((choice) => choice.label === item.choices[item.answer].label) };
@@ -78,8 +80,6 @@ export function NatureSort({ lang, level, onComplete }: { lang: Language; level:
   const [step, setStep] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [mistake, setMistake] = useState(false);
-  const [advancing, setAdvancing] = useState(false);
-  const [message, setMessage] = useState('');
   const current = rounds[step];
   const eu = lang === 'eu';
 
@@ -87,23 +87,19 @@ export function NatureSort({ lang, level, onComplete }: { lang: Language; level:
     if (advancing) return;
     if (index !== current.answer) {
       setMistake(true);
-      setMessage(`${eu ? 'Saiatu berriro!' : '¡Prueba otra vez!'} ${current.hint}`);
+      showFeedback(false, current.hint);
       return;
     }
-    setAdvancing(true);
     const score = correct + (mistake ? 0 : 1);
-    setMessage(eu ? 'Bai! Naturaren laguna zara. 🌱' : '¡Muy bien! Cuidas la naturaleza. 🌱');
-    window.setTimeout(() => {
+    showFeedback(true, undefined, () => {
       if (step + 1 === rounds.length) {
         onComplete({ game: 'science', score, correct: score, total: rounds.length, stars: calculateStars(score, rounds.length) });
       } else {
         setCorrect(score);
         setStep(step + 1);
         setMistake(false);
-        setAdvancing(false);
-        setMessage('');
       }
-    }, 450);
+    });
   };
 
   return <section className="game-shell learning-game nature-game">
@@ -116,7 +112,6 @@ export function NatureSort({ lang, level, onComplete }: { lang: Language; level:
       <div className="visual" aria-hidden="true">{current.picture}</div>
       <h3>{current.prompt}</h3>
       <div className="answers">{current.choices.map((choice, index) => <button className="answer" key={`${choice.label}-${index}`} onClick={() => choose(index)} disabled={advancing}><span aria-hidden="true">{choice.icon}</span><br />{choice.label}</button>)}</div>
-      {message && <p role="status" className={mistake ? 'gentle-feedback' : 'good-feedback'}>{message}</p>}
     </div>
     <p className="game-note">{eu ? 'Ez dago presarik. Saiatu eta ikasi!' : 'Sin prisa. ¡Prueba y aprende!'}</p>
   </section>;

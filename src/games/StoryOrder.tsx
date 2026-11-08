@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAnswerFeedback } from './AnswerFeedback';
 import type { GameResult, Language, SchoolLevel } from '../types';
 import { calculateStars, shuffle } from '../utils/gameLogic';
 
@@ -105,20 +106,18 @@ function makeRounds(level: SchoolLevel) {
 }
 
 export function StoryOrder({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+  const { advancing, showFeedback } = useAnswerFeedback();
   const [rounds] = useState(() => makeRounds(level));
   const [round, setRound] = useState(0);
   const [sequence, setSequence] = useState<number[]>([]);
   const [correct, setCorrect] = useState(0);
   const [mistake, setMistake] = useState(false);
-  const [message, setMessage] = useState('');
-  const [advancing, setAdvancing] = useState(false);
   const total = rounds.length;
   const { story, choices } = rounds[round];
 
   const choose = (card: number) => {
-    if (sequence.includes(card) || sequence.length >= story.cards.length) return;
+    if (advancing || sequence.includes(card) || sequence.length >= story.cards.length) return;
     setSequence([...sequence, card]);
-    setMessage('');
   };
 
   const check = () => {
@@ -127,14 +126,12 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
     if (!isCorrect) {
       setMistake(true);
       setSequence([]);
-      setMessage(label(lang, 'Ia! Saiatu berriro, pausoz pauso.', '¡Casi! Prueba otra vez, paso a paso.'));
+      showFeedback(false, label(lang, 'Pentsatu zer gertatu den pauso bakoitzean.', 'Piensa qué ocurrió en cada paso.'));
       return;
     }
 
     const nextCorrect = correct + (mistake ? 0 : 1);
-    setAdvancing(true);
-    setMessage(label(lang, 'Oso ondo! Istorioa osatu duzu.', '¡Muy bien! Has ordenado la historia.'));
-    window.setTimeout(() => {
+    showFeedback(true, label(lang, 'Istorioa osatu duzu.', 'Has ordenado la historia.'), () => {
       if (round + 1 === total) {
         onComplete({ game: 'stories', score: nextCorrect, correct: nextCorrect, total, stars: calculateStars(nextCorrect, total) });
         return;
@@ -143,14 +140,11 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
       setRound(round + 1);
       setSequence([]);
       setMistake(false);
-      setAdvancing(false);
-      setMessage('');
-    }, 650);
+    });
   };
 
   const removeLast = () => {
     setSequence(sequence.slice(0, -1));
-    setMessage('');
   };
 
   return <section className="game-shell learning-game">
@@ -173,7 +167,7 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
             className={`answer ${selectedAt >= 0 ? 'used' : ''}`}
             key={cardIndex}
             onClick={() => choose(cardIndex)}
-            disabled={selectedAt >= 0}
+            disabled={advancing || selectedAt >= 0}
             aria-label={`${card.icon} ${lang === 'eu' ? card.eu : card.es}`}
           >
             <span style={{ display: 'block', fontSize: '2.6rem' }}>{card.icon}</span>
@@ -193,7 +187,6 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
         <button className="secondary" onClick={removeLast} disabled={!sequence.length || advancing}>{label(lang, 'Azkena kendu', 'Quitar la última')}</button>
         <button className="primary" onClick={check} disabled={sequence.length !== story.cards.length || advancing}>{label(lang, 'Egiaztatu', 'Comprobar')} →</button>
       </div>
-      {message && <p role="status" className={mistake && !sequence.length ? 'gentle-feedback' : 'good-feedback'}>{message}</p>}
     </div>
     <p className="learning-note">{label(lang, 'Ez dago presarik. Saiatu istorioaren urratsei begiratzen.', 'No hay prisa. Piensa en los pasos de la historia.')}</p>
   </section>;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAnswerFeedback } from './AnswerFeedback';
 import type { GameResult, Language, SchoolLevel } from '../types';
 import { answerChoices, calculateStars, shuffle } from '../utils/gameLogic';
 
@@ -47,6 +48,7 @@ const clues: Record<SchoolLevel, ReturnType<typeof clue>[]> = {
 };
 
 export function TogetherQuest({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+  const { advancing, showFeedback } = useAnswerFeedback();
   const [roundClues] = useState(() => shuffle(clues[level]).slice(0, level === 'lh1' ? 3 : 4).map(clue => {
     const [correct, ...wrong] = clue.places.map(id => places[id]);
     const { options, answer } = answerChoices(correct, wrong);
@@ -55,8 +57,6 @@ export function TogetherQuest({ lang, level, onComplete }: { lang: Language; lev
   const [step, setStep] = useState(-1);
   const [mistake, setMistake] = useState(false);
   const [correct, setCorrect] = useState(0);
-  const [message, setMessage] = useState('');
-  const [advancing, setAdvancing] = useState(false);
   const es = lang === 'es';
   const clue = roundClues[Math.max(0, step)];
 
@@ -64,14 +64,12 @@ export function TogetherQuest({ lang, level, onComplete }: { lang: Language; lev
     if (advancing) return;
     if (index !== clue.answer) {
       setMistake(true);
-      setMessage(es ? '¡Casi! Leed la pista otra vez y decididlo juntas.' : 'Ia-ia! Irakurri pista berriro eta erabaki elkarrekin.');
+      showFeedback(false, es ? 'Leed la pista otra vez y decididlo juntas.' : 'Irakurri pista berriro eta erabaki elkarrekin.');
       return;
     }
 
     const score = correct + (mistake ? 0 : 1);
-    setAdvancing(true);
-    setMessage(es ? '¡Buen trabajo en equipo! Encontrasteis la pista. ✨' : 'Talde lan bikaina! Pista aurkitu duzue. ✨');
-    window.setTimeout(() => {
+    showFeedback(true, es ? 'Encontrasteis la pista.' : 'Pista aurkitu duzue.', () => {
       const next = step + 1;
       if (next === roundClues.length) {
         onComplete({ game: 'teamQuest', score, correct: score, total: roundClues.length, stars: calculateStars(score, roundClues.length) });
@@ -79,10 +77,8 @@ export function TogetherQuest({ lang, level, onComplete }: { lang: Language; lev
         setCorrect(score);
         setStep(next);
         setMistake(false);
-        setAdvancing(false);
-        setMessage('');
       }
-    }, 550);
+    });
   };
 
   if (step === -1) {
@@ -110,7 +106,6 @@ export function TogetherQuest({ lang, level, onComplete }: { lang: Language; lev
           <span aria-hidden="true">{choice.icon}</span><br />{es ? choice.es : choice.eu}
         </button>)}
       </div>
-      {message && <p role="status" className={mistake ? 'gentle-feedback' : 'good-feedback'}>{message}</p>}
     </div>
     <p className="game-note">{es ? 'El objetivo es encontrarlo juntas, no hacerlo deprisa.' : 'Helburua elkarrekin aurkitzea da, ez azkar egitea.'}</p>
   </section>;
