@@ -1,89 +1,57 @@
 import { useState } from 'react';
 import type { GameResult, Language, SchoolLevel } from '../types';
-import { calculateStars } from '../utils/gameLogic';
+import { answerChoices, calculateStars, shuffle } from '../utils/gameLogic';
 
-type Choice = { icon: string; eu: string; es: string };
-type Clue = { eu: string; es: string; answer: number; choices: Choice[] };
+const place = (icon: string, eu: string, es: string) => ({ icon, eu, es });
+const places = {
+  bridge: place('🌉', 'Zubia', 'El puente'),
+  cave: place('🪨', 'Haitzuloa', 'La cueva'),
+  forest: place('🌲', 'Basoa', 'El bosque'),
+  fountain: place('⛲', 'Iturria', 'La fuente'),
+  garden: place('🌷', 'Lorategia', 'El jardín'),
+  lake: place('🏞️', 'Aintzira', 'El lago'),
+  library: place('📚', 'Liburutegia', 'La biblioteca'),
+  lighthouse: place('🗼', 'Itsasargia', 'El faro'),
+  mountain: place('⛰️', 'Mendia', 'La montaña'),
+  orchard: place('🍎', 'Sagastia', 'El manzanal'),
+  park: place('🛝', 'Parkea', 'El parque'),
+  school: place('🏫', 'Eskola', 'El colegio'),
+  shore: place('🏖️', 'Hondartza', 'La playa'),
+  station: place('🚉', 'Geltokia', 'La estación'),
+  tunnel: place('🚇', 'Tunela', 'El túnel'),
+  well: place('🪣', 'Putzua', 'El pozo'),
+};
 
-const clues: Record<SchoolLevel, Clue[]> = {
+type Place = keyof typeof places;
+const clue = (eu: string, es: string, ...places: [Place, Place, Place, Place]) => ({ eu, es, places });
+
+const clues: Record<SchoolLevel, ReturnType<typeof clue>[]> = {
   lh1: [
-    {
-      eu: 'Lehen pista lore artean dago. Non bilatuko dugu?',
-      es: 'La primera pista está entre las flores. ¿Dónde la buscamos?',
-      answer: 0,
-      choices: [
-        { icon: '🌷', eu: 'Loreak', es: 'Las flores' },
-        { icon: '🌊', eu: 'Itsasoa', es: 'El mar' },
-        { icon: '🏠', eu: 'Etxea', es: 'La casa' },
-      ],
-    },
-    {
-      eu: 'Hurrengo arrastoa mendiaren gainean dago. Zein aukeratuko dugu?',
-      es: 'La siguiente pista está en la montaña. ¿Cuál elegimos?',
-      answer: 1,
-      choices: [
-        { icon: '🌳', eu: 'Zuhaitza', es: 'El árbol' },
-        { icon: '⛰️', eu: 'Mendia', es: 'La montaña' },
-        { icon: '🐟', eu: 'Arraina', es: 'El pez' },
-      ],
-    },
-    {
-      eu: 'Altxorra kobazuloan dago! Non dago kobazuloa?',
-      es: '¡El tesoro está en la cueva! ¿Dónde está la cueva?',
-      answer: 2,
-      choices: [
-        { icon: '☁️', eu: 'Hodeia', es: 'La nube' },
-        { icon: '🏕️', eu: 'Denda', es: 'La tienda' },
-        { icon: '🪨', eu: 'Kobazuloa', es: 'La cueva' },
-      ],
-    },
+    clue('Erreka zeharkatu behar dugu oinak busti gabe. Zerk lotzen ditu bi ertzak?', 'Tenemos que cruzar el arroyo sin mojarnos. ¿Qué une las dos orillas?', 'bridge', 'lake', 'shore', 'fountain'),
+    clue('Aterpea aurkitu dugu harkaitzaren barruan. Non bilatuko dugu pista?', 'Hemos encontrado un refugio dentro de la roca. ¿Dónde buscamos la pista?', 'cave', 'forest', 'mountain', 'tunnel'),
+    clue('Pista adarrez eta itzalez betetako leku batean dago. Non dago?', 'La pista está en un lugar lleno de ramas y sombra. ¿Dónde está?', 'forest', 'lake', 'shore', 'mountain'),
+    clue('Kulunkak eta txirrista bat ikusten ditugu. Non gaude?', 'Vemos unos columpios y un tobogán. ¿Dónde estamos?', 'park', 'garden', 'forest', 'station'),
+    clue('Ipuin bat etxera eraman eta gero itzuli nahi dugu. Nora joango gara?', 'Queremos llevarnos un cuento a casa y devolverlo después. ¿Adónde vamos?', 'library', 'station', 'school', 'park'),
+    clue('Olatuek oinak bustitzen dizkigute hondarrean. Non dago pista?', 'Las olas nos mojan los pies sobre la arena. ¿Dónde está la pista?', 'shore', 'bridge', 'cave', 'mountain'),
   ],
   lh3: [
-    {
-      eu: 'Irteeran, lehen arrastoa lakuaren ondoan dago. Zein lekuk du ura?',
-      es: 'Al salir, la primera pista está junto al lago. ¿Qué lugar tiene agua?',
-      answer: 1,
-      choices: [
-        { icon: '🌋', eu: 'Sumendia', es: 'El volcán' },
-        { icon: '🏞️', eu: 'Lakua', es: 'El lago' },
-        { icon: '🌵', eu: 'Basamortua', es: 'El desierto' },
-      ],
-    },
-    {
-      eu: 'Lakuaren ondoren, basoan sartuko gara. Zer ikusiko dugu basoan?',
-      es: 'Después del lago entraremos en el bosque. ¿Qué veremos allí?',
-      answer: 2,
-      choices: [
-        { icon: '🐚', eu: 'Maskorrak', es: 'Conchas' },
-        { icon: '🏢', eu: 'Eraikinak', es: 'Edificios' },
-        { icon: '🌲', eu: 'Zuhaitzak', es: 'Árboles' },
-      ],
-    },
-    {
-      eu: 'Basoaren beste aldean, zubia zeharkatu behar dugu. Zeren gainetik pasatzen da zubia?',
-      es: 'Al otro lado del bosque cruzaremos un puente. ¿Sobre qué suele pasar?',
-      answer: 0,
-      choices: [
-        { icon: '🏞️', eu: 'Ibaiaren gainetik', es: 'Sobre un río' },
-        { icon: '🌳', eu: 'Zuhaitz baten gainetik', es: 'Sobre un árbol' },
-        { icon: '🌙', eu: 'Ilargiaren gainetik', es: 'Sobre la luna' },
-      ],
-    },
-    {
-      eu: 'Zubiaren amaieran dago altxorra: haitzulo txiki batean. Zein da haitzuloaren ikurra?',
-      es: 'Al final del puente está el tesoro, en una cueva pequeña. ¿Qué dibujo es la cueva?',
-      answer: 1,
-      choices: [
-        { icon: '🌷', eu: 'Lorea', es: 'La flor' },
-        { icon: '🪨', eu: 'Haitzuloa', es: 'La cueva' },
-        { icon: '☀️', eu: 'Eguzkia', es: 'El sol' },
-      ],
-    },
+    clue('Bi ertzen artean dago pista. Oinez joan gaitezke eta ura azpitik doa.', 'La pista está entre dos orillas. Podemos pasar a pie y el agua queda por debajo.', 'bridge', 'tunnel', 'shore', 'fountain'),
+    clue('Kostaldean dago, baina ez hondarrean. Gauez itsasontziei bidea erakusten die.', 'Está en la costa. Su luz guía a los barcos de noche. ¿Qué lugar es?', 'lighthouse', 'shore', 'bridge', 'station'),
+    clue('Ura beherantz bilatu behar dugu. Ontzi bat sokaz jaitsiko dugu.', 'Buscamos agua debajo de nuestros pies. Bajaremos un cubo con una cuerda.', 'well', 'fountain', 'lake', 'cave'),
+    clue('Mendiaren beste aldera joango gara tontorrera igo gabe. Bidea harkaitzetik pasatzen da.', 'Iremos al otro lado de la montaña sin subir a la cima. El camino pasa por dentro de la roca.', 'tunnel', 'bridge', 'cave', 'forest'),
+    clue('Zuhaitzak lerroetan daude. Udazkenean, fruitu biribilak jasotzen dituzte.', 'Los árboles están en filas. En otoño, recogen frutos redondos de sus ramas.', 'orchard', 'forest', 'park', 'garden'),
+    clue('Jendea ordutegiari begira dago eta nasan itxaroten du. Non gaude?', 'La gente mira el horario y espera en un andén. ¿Dónde estamos?', 'station', 'school', 'library', 'park'),
+    clue('Ura gora ateratzen da eta harrizko ontzi batean erortzen da. Hiriko plazan dago.', 'El agua sale hacia arriba y cae en una pila de piedra. Está en la plaza.', 'fountain', 'well', 'lake', 'shore'),
+    clue('Errekaren ura geldi geratu da leku zabal batean. Mendiak inguruan daude, eta itsasoko olaturik ez dago.', 'El agua se queda quieta en un lugar ancho, rodeado de montañas y sin olas de mar.', 'lake', 'shore', 'fountain', 'well'),
   ],
 };
 
 export function TogetherQuest({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
-  const roundClues = clues[level];
+  const [roundClues] = useState(() => shuffle(clues[level]).slice(0, level === 'lh1' ? 3 : 4).map(clue => {
+    const [correct, ...wrong] = clue.places.map(id => places[id]);
+    const { options, answer } = answerChoices(correct, wrong);
+    return { ...clue, choices: options, answer };
+  }));
   const [step, setStep] = useState(-1);
   const [mistake, setMistake] = useState(false);
   const [correct, setCorrect] = useState(0);

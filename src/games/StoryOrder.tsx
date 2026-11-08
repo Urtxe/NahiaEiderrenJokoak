@@ -5,83 +5,115 @@ import { calculateStars, shuffle } from '../utils/gameLogic';
 type StoryCard = { icon: string; eu: string; es: string };
 type Story = { eu: string; es: string; cards: StoryCard[] };
 
-const stories: Story[] = [
-  {
-    eu: 'Lore bat hazten da',
-    es: 'Crece una flor',
-    cards: [
-      { icon: '🌱', eu: 'Hazia lurrean jartzen dugu.', es: 'Plantamos una semilla.' },
-      { icon: '💧', eu: 'Ura ematen diogu.', es: 'La regamos.' },
-      { icon: '🌼', eu: 'Lorea hazten da.', es: 'Crece una flor.' },
-    ],
-  },
-  {
-    eu: 'Etxetik eskolara',
-    es: 'De casa al cole',
-    cards: [
-      { icon: '👕', eu: 'Jantzi egiten naiz.', es: 'Me visto.' },
-      { icon: '🥣', eu: 'Gosaria jaten dut.', es: 'Desayuno.' },
-      { icon: '🎒', eu: 'Motxila hartzen dut.', es: 'Cojo la mochila.' },
-    ],
-  },
-  {
-    eu: 'Euria hasi da',
-    es: 'Empieza a llover',
-    cards: [
-      { icon: '☁️', eu: 'Hodei iluna agertzen da.', es: 'Llega una nube oscura.' },
-      { icon: '🌧️', eu: 'Euria hasten da.', es: 'Empieza a llover.' },
-      { icon: '🌈', eu: 'Ortzadarra agertzen da.', es: 'Sale el arcoíris.' },
-    ],
-  },
-  {
-    eu: 'Sagar zukua',
-    es: 'Zumo de manzana',
-    cards: [
-      { icon: '🍎', eu: 'Sagar bat hartzen dugu.', es: 'Cogemos una manzana.' },
-      { icon: '🔪', eu: 'Heldu batek sagarra mozten du.', es: 'Una persona adulta corta la manzana.' },
-      { icon: '🥤', eu: 'Zukua edaten dugu.', es: 'Bebemos el zumo.' },
-    ],
-  },
-  {
-    eu: 'Tximeletaren bidaia',
-    es: 'El viaje de la mariposa',
-    cards: [
-      { icon: '🥚', eu: 'Tximeletak arrautzak uzten ditu hosto batean.', es: 'La mariposa pone huevos en una hoja.' },
-      { icon: '🐛', eu: 'Beldarra jaiotzen da eta hostoak jaten ditu.', es: 'Nace una oruga y come hojas.' },
-      { icon: '🫛', eu: 'Beldarra krisalida batean gordetzen da.', es: 'La oruga se transforma dentro de una crisálida.' },
-      { icon: '🦋', eu: 'Tximeleta berria ateratzen da.', es: 'Sale una mariposa nueva.' },
-    ],
-  },
-  {
-    eu: 'Bizikletaz ibiltzen ikasten',
-    es: 'Aprender a montar en bici',
-    cards: [
-      { icon: '🪖', eu: 'Kaskoa jartzen dut.', es: 'Me pongo el casco.' },
-      { icon: '🚲', eu: 'Heldu batek bizikletari heltzen dio.', es: 'Una persona adulta sujeta la bicicleta.' },
-      { icon: '🚴', eu: 'Oreka lantzen dut laguntzarekin.', es: 'Practico el equilibrio con ayuda.' },
-      { icon: '⭐', eu: 'Gero eta hobeto ibiltzen naiz.', es: 'Cada vez voy un poco mejor.' },
-    ],
-  },
-];
+const story = (eu: string, es: string, cards: [string, string, string][]): Story => ({
+  eu, es, cards: cards.map(([icon, eu, es]) => ({ icon, eu, es })),
+});
+
+const stories: Record<SchoolLevel, Story[]> = {
+  lh1: [
+    story('Lore bat hazten da', 'Crece una flor', [
+      ['🪴', 'Loreontzian lurra jartzen dugu.', 'Ponemos tierra en la maceta.'],
+      ['🌰', 'Hazia lurrean sartzen dugu.', 'Enterramos la semilla.'],
+      ['💧', 'Hazia ureztatzen dugu.', 'Regamos la semilla.'],
+      ['🌼', 'Handik egun batzuetara, lorea ateratzen da.', 'Días después, sale la flor.'],
+    ]),
+    story('Etxetik eskolara', 'De casa al cole', [
+      ['⏰', 'Iratzargailuak jo du; jaiki naiz.', 'Suena el despertador y me levanto.'],
+      ['👕', 'Pijama kendu eta jantzi naiz.', 'Me quito el pijama y me visto.'],
+      ['🎒', 'Motxila hartu eta etxetik atera naiz.', 'Cojo la mochila y salgo de casa.'],
+      ['🏫', 'Eskolara iritsi naiz.', 'Llego al cole.'],
+    ]),
+    story('Ekaitza', 'Una tormenta', [
+      ['☁️', 'Hodei ilunak hurbiltzen dira.', 'Se acercan nubes oscuras.'],
+      ['💧', 'Lehen tantak erortzen dira.', 'Caen las primeras gotas.'],
+      ['☔', 'Euria ari du eta aterkia irekitzen dut.', 'Llueve y abro el paraguas.'],
+      ['🌈', 'Euria gelditzen da eta ortzadarra agertzen da.', 'Para la lluvia y sale el arcoíris.'],
+    ]),
+    story('Ogi txigortua', 'La tostada', [
+      ['🍞', 'Ogi xerra bat hartzen dut.', 'Cojo una rebanada de pan.'],
+      ['♨️', 'Ogia txigortzen dut.', 'Tuesto la rebanada.'],
+      ['🍓', 'Ogi txigortuan marmelada jartzen dut.', 'Unto mermelada en la tostada.'],
+      ['😋', 'Prest dagoen tostada jaten dut.', 'Me como la tostada preparada.'],
+    ]),
+    story('Gutuna', 'La carta', [
+      ['✏️', 'Mezua paperean idazten dut.', 'Escribo el mensaje en un papel.'],
+      ['✉️', 'Papera gutun-azalean sartzen dut.', 'Meto el papel en el sobre.'],
+      ['📮', 'Gutuna postontzira botatzen dut.', 'Echo la carta al buzón.'],
+      ['📖', 'Lagunak gutuna jasotzen eta irakurtzen du.', 'Mi amiga recibe y lee la carta.'],
+    ]),
+    story('Paperezko hegazkina', 'El avión de papel', [
+      ['📄', 'Paper orri bat hartzen dut.', 'Cojo una hoja de papel.'],
+      ['📐', 'Papera tolestu eta hegoak egiten ditut.', 'Doblo el papel y hago las alas.'],
+      ['✈️', 'Hegazkina airera jaurtitzen dut.', 'Lanzo el avión al aire.'],
+      ['🖐️', 'Lurrera erori den hegazkina jasotzen dut.', 'Recojo el avión cuando cae al suelo.'],
+    ]),
+  ],
+  lh3: [
+    story('Tximeletaren bidaia', 'El viaje de la mariposa', [
+      ['🥚', 'Tximeletak arrautzak uzten ditu hosto batean.', 'La mariposa pone huevos en una hoja.'],
+      ['🐛', 'Arrautzatik beldarra ateratzen da.', 'Del huevo sale una oruga.'],
+      ['🍃', 'Beldarrak hostoak jan eta hazi egiten da.', 'La oruga come hojas y crece.'],
+      ['🫛', 'Beldarra krisalida bihurtzen da.', 'La oruga forma una crisálida.'],
+      ['🦋', 'Krisalidatik tximeleta ateratzen da.', 'De la crisálida sale una mariposa.'],
+    ]),
+    story('Gurpil zulatu bat', 'Una rueda pinchada', [
+      ['🚲', 'Bizikletaren gurpilak airea galdu duela ikusten dut.', 'Veo que la rueda de la bici ha perdido aire.'],
+      ['🔧', 'Heldu baten laguntzaz, gurpila kendu dugu.', 'Con ayuda, desmontamos la rueda.'],
+      ['🩹', 'Zuloa aurkitu eta adabaki bat jartzen dugu.', 'Encontramos el agujero y ponemos un parche.'],
+      ['💨', 'Gurpila berriz jarri eta puzten dugu.', 'Montamos e hinchamos la rueda.'],
+      ['🚴', 'Konpondutako bizikleta probatzen dut.', 'Pruebo la bici reparada.'],
+    ]),
+    story('Liburutegiko mailegua', 'Un préstamo de la biblioteca', [
+      ['🔎', 'Katalogoan liburu bat bilatzen dut.', 'Busco un libro en el catálogo.'],
+      ['📚', 'Apalean aurkitu eta hartzen dut.', 'Lo encuentro y lo cojo de la estantería.'],
+      ['🪪', 'Txartela erakutsi eta liburua maileguan hartzen dut.', 'Enseño el carné y me llevo el libro prestado.'],
+      ['📖', 'Etxean irakurtzen dut.', 'Lo leo en casa.'],
+      ['↩️', 'Liburua liburutegira itzultzen dut.', 'Devuelvo el libro a la biblioteca.'],
+    ]),
+    story('Erakusketa bat', 'Una exposición', [
+      ['💭', 'Erakusketarako gaia aukeratzen dugu.', 'Elegimos el tema de la exposición.'],
+      ['✏️', 'Gai horri buruzko marrazkiak egiten ditugu.', 'Hacemos dibujos sobre el tema.'],
+      ['🏷️', 'Marrazki bakoitzari izenburua jartzen diogu.', 'Ponemos un título a cada dibujo.'],
+      ['🖼️', 'Lanak horman zintzilikatzen ditugu.', 'Colgamos los trabajos en la pared.'],
+      ['👋', 'Bisitariak sartzen dira lanak ikustera.', 'Entran las visitas a ver los trabajos.'],
+    ]),
+    story('Ogia egiten', 'Hacemos pan', [
+      ['🥣', 'Irina, ura eta legamia nahasten ditugu.', 'Mezclamos harina, agua y levadura.'],
+      ['🤲', 'Nahasketa oratzen dugu.', 'Amasamos la mezcla.'],
+      ['⏳', 'Orea hazten uzten dugu.', 'Dejamos que la masa suba.'],
+      ['🔥', 'Orea labean egosten dugu.', 'Cocemos la masa en el horno.'],
+      ['🥖', 'Ogia hoztu eta zatitzen dugu.', 'Dejamos enfriar el pan y lo cortamos.'],
+    ]),
+    story('Mendiko argazkia', 'La foto en la montaña', [
+      ['🗺️', 'Mapan ibilbidea aukeratzen dugu.', 'Elegimos una ruta en el mapa.'],
+      ['🎒', 'Ibilbiderako motxila prestatzen dugu.', 'Preparamos la mochila para la ruta.'],
+      ['🥾', 'Bidezidorretik gora igotzen gara.', 'Subimos por el sendero.'],
+      ['📷', 'Tontorrean argazkia egiten dugu.', 'Hacemos una foto en la cima.'],
+      ['🏠', 'Etxera itzuli eta argazkia erakusten dugu.', 'Volvemos a casa y enseñamos la foto.'],
+    ]),
+  ],
+};
 
 const label = (lang: Language, eu: string, es: string) => lang === 'eu' ? eu : es;
 
-function newRound(level: SchoolLevel) {
-  const pool = level === 'lh1' ? stories.slice(0, 4) : stories.slice(2);
-  const story = pool[Math.floor(Math.random() * pool.length)];
-  return { story, choices: shuffle(story.cards.map((_, index) => index)) };
+function makeRounds(level: SchoolLevel) {
+  return shuffle(stories[level]).slice(0, 4).map(story => {
+    const choices = shuffle(story.cards.map((_, index) => index));
+    if (choices.every((card, index) => card === index)) choices.push(choices.shift()!);
+    return { story, choices };
+  });
 }
 
 export function StoryOrder({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
-  const [roundData, setRoundData] = useState(() => newRound(level));
+  const [rounds] = useState(() => makeRounds(level));
   const [round, setRound] = useState(0);
   const [sequence, setSequence] = useState<number[]>([]);
   const [correct, setCorrect] = useState(0);
   const [mistake, setMistake] = useState(false);
   const [message, setMessage] = useState('');
   const [advancing, setAdvancing] = useState(false);
-  const total = 4;
-  const { story, choices } = roundData;
+  const total = rounds.length;
+  const { story, choices } = rounds[round];
 
   const choose = (card: number) => {
     if (sequence.includes(card) || sequence.length >= story.cards.length) return;
@@ -109,7 +141,6 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
       }
       setCorrect(nextCorrect);
       setRound(round + 1);
-      setRoundData(newRound(level));
       setSequence([]);
       setMistake(false);
       setAdvancing(false);
@@ -146,7 +177,7 @@ export function StoryOrder({ lang, level, onComplete }: { lang: Language; level:
             aria-label={`${card.icon} ${lang === 'eu' ? card.eu : card.es}`}
           >
             <span style={{ display: 'block', fontSize: '2.6rem' }}>{card.icon}</span>
-            {level === 'lh3' && <small>{lang === 'eu' ? card.eu : card.es}</small>}
+            <small>{lang === 'eu' ? card.eu : card.es}</small>
           </button>;
         })}
       </div>

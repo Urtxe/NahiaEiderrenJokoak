@@ -4,7 +4,15 @@ import { ingredients, potionNames } from '../data/content';
 import { calculateStars, effectiveLevel, random } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 type Recipe={items:Ingredient[];name:string};
-const createRecipe=(lang:Language,level:'seed'|'star'):Recipe=>{const bank=ingredients(lang); const length=(level==='seed'?2:4)+Math.floor(Math.random()*(level==='seed'?3:4)); return {items:Array.from({length},()=>random(bank)),name:random(potionNames[lang])};};
+const createRecipe = (lang: Language, level: 'seed' | 'star'): Recipe => {
+  const bank = ingredients(lang);
+  const length = (level === 'seed' ? 3 : 5) + Math.floor(Math.random() * (level === 'seed' ? 2 : 3));
+  const items: Ingredient[] = [];
+  while (items.length < length) {
+    items.push(random(bank.filter(item => item.id !== items[items.length - 1]?.id)));
+  }
+  return { items, name: random(potionNames[lang]) };
+};
 export function PotionLab({lang,difficulty,stats,profile,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;profile:ProfileId;onComplete:(r:GameResult)=>void}) {
  const level=effectiveLevel(difficulty,stats); const [recipe,setRecipe]=useState(()=>createRecipe(lang,level)); const [round,setRound]=useState(0); const [added,setAdded]=useState<Ingredient[]>([]); const [show,setShow]=useState(true); const [message,setMessage]=useState(''); const [firstTry,setFirstTry]=useState(true); const [correct,setCorrect]=useState(0); const [streak,setStreak]=useState(0); const [maxStreak,setMaxStreak]=useState(0); const [review,setReview]=useState(false);
  useEffect(()=>{const id=window.setTimeout(()=>setShow(false),level==='seed'?4300:2500);return()=>clearTimeout(id);},[recipe,level]);
