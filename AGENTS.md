@@ -23,7 +23,7 @@ Al terminar una actividad, el juego llama a `onComplete(GameResult)`. `App.compl
 | Estilos globales y de juegos | `src/styles.css` |
 | Entrada y URL base de GitHub Pages | `src/main.tsx`, `vite.config.ts` |
 
-Juegos: `AnimalRescue`, `PotionLab`, `QuizRace`, `MuseumDetectives`, `MagicCity`, `StarRoad`, `WordSearch`, `MathAdventure`, `EnglishQuest`, `ShapeBuilder`, `StoryOrder`, `NatureSort`, `TogetherQuest`, `Checkers`, `TicTacToe`, `Crossword` y `MemoryPairs`, todos en `src/games/`. La pizarra `CreativeBoard` no es puntuable y guarda su contenido localmente por perfil. Para agregar otro juego, actualizar `GameId`, la ficha y el render en `App`, los textos y los valores iniciales pertinentes; seguir el patrón de `GameResult` y `onComplete`.
+Juegos: `AnimalRescue`, `PotionLab`, `QuizRace`, `MuseumDetectives`, `MagicCity`, `StarRoad`, `WordSearch`, `MathAdventure`, `EnglishQuest`, `ShapeBuilder`, `StoryOrder`, `NatureSort`, `TogetherQuest`, `Checkers`, `TicTacToe`, `Crossword`, `MemoryPairs` y `DoodleJump`, todos en `src/games/`. La pizarra `CreativeBoard` no es puntuable y guarda su contenido localmente por perfil. Para agregar otro juego, actualizar `GameId`, la ficha y el render en `App`, los textos y los valores iniciales pertinentes; seguir el patrón de `GameResult` y `onComplete`.
 
 ## Datos y comprobación
 

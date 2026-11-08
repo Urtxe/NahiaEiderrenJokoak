@@ -16,13 +16,14 @@ import { StoryOrder } from './games/StoryOrder';
 import { NatureSort } from './games/NatureSort';
 import { TogetherQuest } from './games/TogetherQuest';
 import { CreativeBoard } from './games/CreativeBoard';
+import { DoodleJump } from './games/DoodleJump';
 import { MemoryPairs } from './games/MemoryPairs';
 import { Crossword } from './games/Crossword';
 import { TicTacToe } from './games/TicTacToe';
 import { Checkers } from './games/Checkers';
 
 const profileInfo:Record<ProfileId,{name:string;emoji:string;color:string;desc:{eu:string;es:string}}>={nahia:{name:'Nahia',emoji:'🦋',color:'#ed7b9c',desc:{eu:'Arrosa distiratsua',es:'Rosa brillante'}},eider:{name:'Eider',emoji:'🌼',color:'#6c9df1',desc:{eu:'Urdin alaia',es:'Azul alegre'}},team:{name:'Nahia + Eider',emoji:'🤝',color:'#8c78d8',desc:{eu:'Elkarrekin hobe',es:'Mejor juntas'}}};
-const gameInfo:Record<GameId,{icon:string;name:WordKey;desc:WordKey;difficulty:string}>={animals:{icon:'🦊',name:'animalName',desc:'animalDesc',difficulty:'★ ☆ ☆'},potions:{icon:'🧪',name:'potionName',desc:'potionDesc',difficulty:'★ ★ ☆'},race:{icon:'🏁',name:'raceName',desc:'raceDesc',difficulty:'★ ★ ☆'},museum:{icon:'🕵️',name:'museum',desc:'museumDesc',difficulty:'★ ★ ☆'},city:{icon:'🏘️',name:'city',desc:'cityDesc',difficulty:'★ ☆ ☆'},road:{icon:'🚙',name:'road',desc:'roadDesc',difficulty:'★ ★ ☆'},words:{icon:'🔎',name:'wordName',desc:'wordDesc',difficulty:'★ ☆ ☆'},math:{icon:'💎',name:'mathName',desc:'mathDesc',difficulty:'★ ★ ☆'},english:{icon:'🇬🇧',name:'englishName',desc:'englishDesc',difficulty:'★ ☆ ☆'},shapes:{icon:'🧩',name:'shapesName',desc:'shapesDesc',difficulty:'★ ☆ ☆'},stories:{icon:'📖',name:'storiesName',desc:'storiesDesc',difficulty:'★ ☆ ☆'},science:{icon:'🌿',name:'scienceName',desc:'scienceDesc',difficulty:'★ ☆ ☆'},teamQuest:{icon:'🗺️',name:'togetherName',desc:'togetherDesc',difficulty:'★ ☆ ☆'},checkers:{icon:'⛀',name:'checkersName',desc:'checkersDesc',difficulty:'★ ★ ☆'},ticTacToe:{icon:'❎',name:'ticTacToeName',desc:'ticTacToeDesc',difficulty:'★ ☆ ☆'},crossword:{icon:'✏️',name:'crosswordName',desc:'crosswordDesc',difficulty:'★ ★ ☆'},memoryPairs:{icon:'🃏',name:'memoryPairsName',desc:'memoryPairsDesc',difficulty:'★ ☆ ☆'}};
+const gameInfo:Record<GameId,{icon:string;name:WordKey;desc:WordKey;difficulty:string}>={animals:{icon:'🦊',name:'animalName',desc:'animalDesc',difficulty:'★ ☆ ☆'},potions:{icon:'🧪',name:'potionName',desc:'potionDesc',difficulty:'★ ★ ☆'},race:{icon:'🏁',name:'raceName',desc:'raceDesc',difficulty:'★ ★ ☆'},museum:{icon:'🕵️',name:'museum',desc:'museumDesc',difficulty:'★ ★ ☆'},city:{icon:'🏘️',name:'city',desc:'cityDesc',difficulty:'★ ☆ ☆'},road:{icon:'🚙',name:'road',desc:'roadDesc',difficulty:'★ ★ ☆'},words:{icon:'🔎',name:'wordName',desc:'wordDesc',difficulty:'★ ☆ ☆'},math:{icon:'💎',name:'mathName',desc:'mathDesc',difficulty:'★ ★ ☆'},english:{icon:'🇬🇧',name:'englishName',desc:'englishDesc',difficulty:'★ ☆ ☆'},shapes:{icon:'🧩',name:'shapesName',desc:'shapesDesc',difficulty:'★ ☆ ☆'},stories:{icon:'📖',name:'storiesName',desc:'storiesDesc',difficulty:'★ ☆ ☆'},science:{icon:'🌿',name:'scienceName',desc:'scienceDesc',difficulty:'★ ☆ ☆'},teamQuest:{icon:'🗺️',name:'togetherName',desc:'togetherDesc',difficulty:'★ ☆ ☆'},checkers:{icon:'⛀',name:'checkersName',desc:'checkersDesc',difficulty:'★ ★ ☆'},ticTacToe:{icon:'❎',name:'ticTacToeName',desc:'ticTacToeDesc',difficulty:'★ ☆ ☆'},crossword:{icon:'✏️',name:'crosswordName',desc:'crosswordDesc',difficulty:'★ ★ ☆'},memoryPairs:{icon:'🃏',name:'memoryPairsName',desc:'memoryPairsDesc',difficulty:'★ ☆ ☆'},doodleJump:{icon:'🚀',name:'doodleJumpName',desc:'doodleJumpDesc',difficulty:'★ ★ ☆'}};
 const schoolGames: Partial<Record<GameId, ComponentType<{ lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (result: GameResult) => void }>>> = {
   words: WordSearch,
   math: MathAdventure,
@@ -31,6 +32,7 @@ const schoolGames: Partial<Record<GameId, ComponentType<{ lang: Language; level:
   stories: StoryOrder,
   science: NatureSort,
   teamQuest: TogetherQuest,
+  doodleJump: DoodleJump,
   memoryPairs: MemoryPairs,
   crossword: Crossword,
   ticTacToe: TicTacToe,

@@ -1,0 +1,11 @@
+.doodle-game{max-width:780px;margin:0 auto;padding:18px;border-radius:26px;background:linear-gradient(145deg,#eefbff,#f7f2ff);box-shadow:0 10px 28px #47366717;color:#51436e}
+.doodle-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 12px}
+.doodle-head h2{margin:0;font-size:1.55rem}.doodle-head p{margin:4px 0 0;color:#706782;font-weight:700}
+.doodle-scoreboard{display:flex;gap:8px;flex-wrap:wrap}.doodle-scoreboard span{border-radius:14px;background:#fff;padding:8px 12px;font-weight:900;box-shadow:0 3px 0 #ddd5ed}
+.doodle-stage-wrap{position:relative;max-width:420px;height:min(64vh,560px);min-height:370px;margin:auto;border:6px solid white;border-radius:24px;overflow:hidden;box-shadow:0 8px 22px #47366720;background:#dff5f8}
+.doodle-canvas{width:100%;height:100%;display:block;touch-action:none;outline:none}.doodle-canvas:focus-visible{outline:3px solid #7864c9;outline-offset:-5px}
+.doodle-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;background:#322950a8;color:white;padding:22px}.doodle-overlay strong{font-size:1.55rem}.doodle-overlay p{margin:0;font-weight:800}.doodle-overlay .primary{min-height:48px;border:0;border-radius:14px;padding:10px 18px;font:inherit;font-weight:900;cursor:pointer;color:#473667;background:#ffe19b}
+.doodle-controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px auto 0}.doodle-controls button{min-width:58px;min-height:48px;border:0;border-radius:14px;background:#fff;color:#51436e;font-size:1.25rem;font-weight:900;box-shadow:0 4px 0 #d9d2e9;touch-action:none;user-select:none}.doodle-controls button:active{transform:translateY(2px);box-shadow:0 2px 0 #d9d2e9}.doodle-controls span{font-weight:800;color:#706782}.doodle-controls .doodle-pause{font-size:1rem;padding:0 14px;background:#e8def8}
+.doodle-turn{text-align:center;color:#706782;font-weight:800;margin:9px 0 0}
+@media(max-width:600px){.doodle-game{padding:12px}.doodle-stage-wrap{height:58vh;min-height:350px}.doodle-head h2{font-size:1.3rem}}
+@media(prefers-reduced-motion:reduce){.doodle-game *{scroll-behavior:auto}}
