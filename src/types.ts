@@ -1,7 +1,7 @@
 export type Language = 'eu' | 'es';
 export type ProfileId = 'nahia' | 'eider' | 'team';
 export type Difficulty = 'auto' | 'seed' | 'star';
-export type GameId = 'animals' | 'potions' | 'race' | 'museum' | 'city' | 'road' | 'words' | 'math' | 'english' | 'shapes' | 'stories' | 'science' | 'teamQuest' | 'checkers';
+export type GameId = 'animals' | 'potions' | 'race' | 'museum' | 'city' | 'road' | 'words' | 'math' | 'english' | 'shapes' | 'stories' | 'science' | 'teamQuest' | 'checkers' | 'ticTacToe';
 export type SchoolLevel = 'lh1' | 'lh3';
 export type View = 'welcome' | 'menu' | 'game' | 'board' | 'progress' | 'settings';
 export interface CityPiece { id: string; x: number; y: number; }
