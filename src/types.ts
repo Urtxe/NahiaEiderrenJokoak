@@ -5,7 +5,7 @@ export type GameId = 'animals' | 'potions' | 'race' | 'museum' | 'city' | 'road'
 export type SchoolLevel = 'lh1' | 'lh3';
 export type View = 'welcome' | 'menu' | 'game' | 'board' | 'progress' | 'settings';
 export interface CityPiece { id: string; x: number; y: number; }
-export interface CityProgress { placed: CityPiece[]; unlocked: string[]; missions: number; happiness: number; }
+export interface CityProgress { placed: CityPiece[]; unlocked: string[]; missions: number; happiness: number; usedMissions: string[]; }
 export type RoadCarId = 'red' | 'blue' | 'yellow' | 'duo';
 export type CircuitId = 'forest' | 'cloud' | 'moon';
 export interface RoadProgress { selectedCar: RoadCarId; selectedCircuit: CircuitId; circuitsPlayed: CircuitId[]; objectives: number; turbos: number; cleanStreak: number; circuitStats: Record<CircuitId,{runs:number;stars:number;distance:number}>; }
