@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { Difficulty, GameResult, Language, Stats } from '../types';
-import { calculateStars, effectiveLevel, generateQuestion } from '../utils/gameLogic';
+import { calculateStars, effectiveLevel, generateQuestions } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 
 export function AnimalRescue({lang,difficulty,stats,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;onComplete:(r:GameResult)=>void}) {
- const [questions]=useState(()=>Array.from({length:8},()=>generateQuestion(effectiveLevel(difficulty,stats),lang,'animals')));
+ const [questions]=useState(()=>generateQuestions(effectiveLevel(difficulty,stats),lang,8));
  const [step,setStep]=useState(0); const [wrong,setWrong]=useState(false); const [feedback,setFeedback]=useState(''); const [correct,setCorrect]=useState(0);
  const q=questions[step]; const rescued=useMemo(()=>['🦊','🐢','🦉','🐬','🦋','🦔','🐼','🦜'].slice(0,step),[step]);
  function choose(i:number) { if(i!==q.answer){setWrong(true);setFeedback(`${tr(lang,'tryAgain')} ${q.hint??''}`);return;} const isFirst=!wrong; setFeedback(tr(lang,'correct')); window.setTimeout(()=>{const next=step+1; const score=correct+(isFirst?1:0); if(next===8) onComplete({game:'animals',score,correct:score,total:8,stars:calculateStars(score,8),animals:8}); else {setCorrect(score);setStep(next);setWrong(false);setFeedback('');}},550); }

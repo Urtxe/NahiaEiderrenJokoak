@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
-import { calculateStars, shuffle } from '../utils/gameLogic';
+import { answerChoices, calculateStars, numberChoices } from '../utils/gameLogic';
 import { makeWordGrid, shuffleSearchWords, wordSearchCount } from '../utils/wordSearch';
 
 type Word = { text: string; clue: string; icon: string };
@@ -89,24 +89,15 @@ function makeMathQuestion(level: SchoolLevel): MathQuestion {
   const a = 1 + Math.floor(Math.random() * max), b = 1 + Math.floor(Math.random() * (op === '+' ? Math.max(1, max - a) : a));
   return { a, b, op, answer: op === '+' ? a + b : a - b };
 }
-function optionsFor(answer: number): number[] {
-  const choices = new Set([answer]);
-  for (const offset of shuffle([-3, -2, -1, 1, 2, 3, 4])) {
-    if (answer + offset >= 0) choices.add(answer + offset);
-    if (choices.size === 4) break;
-  }
-  return shuffle([...choices]);
-}
-
 export function MathAdventure({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
-  const [round, setRound] = useState(0); const [question, setQuestion] = useState(() => makeMathQuestion(level)); const [choices, setChoices] = useState(() => optionsFor(question.answer));
+  const [round, setRound] = useState(0); const [question, setQuestion] = useState(() => makeMathQuestion(level)); const [choices, setChoices] = useState(() => numberChoices(question.answer).options);
   const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const [message, setMessage] = useState(''); const total = 8;
   const choose = (value: number) => {
     if (value !== question.answer) { setMistake(true); setMessage(tr(lang, 'Zenbatu edo kalkulatu berriro lasai.', 'Cuenta o calcula otra vez con calma.')); return; }
     const score = correct + (mistake ? 0 : 1); setMessage(tr(lang, 'Bai! Aurrera izarretara!', '¡Sí! ¡A por las estrellas!'));
     window.setTimeout(() => {
       if (round + 1 === total) onComplete({ game: 'math', score, correct: score, total, stars: calculateStars(score, total) });
-      else { const next = makeMathQuestion(level); setRound(round + 1); setCorrect(score); setQuestion(next); setChoices(optionsFor(next.answer)); setMistake(false); setMessage(''); }
+      else { const next = makeMathQuestion(level); setRound(round + 1); setCorrect(score); setQuestion(next); setChoices(numberChoices(next.answer).options); setMistake(false); setMessage(''); }
     }, 550);
   };
   const visualCount = level === 'lh1' && question.answer <= 20;
@@ -143,7 +134,7 @@ const makeVocabRounds = (level: SchoolLevel, previous?: EnglishWord[]): VocabRou
   return selected.map((word, index) => ({
     kind: index < 3 ? 'picture-word' : index < 5 ? 'word-picture' : 'listen-picture',
     word,
-    options: shuffle([word, ...shuffle(englishWords[level].filter(item => item.text !== word.text)).slice(0, 2)]),
+    options: answerChoices(word, englishWords[level]).options,
   }));
 };
 
