@@ -31,6 +31,12 @@ button:focus-visible {
   outline: 4px solid #1e6bb8;
   outline-offset: 3px;
 }
+[data-uppercase],
+[data-uppercase] :is(button, select, option),
+[data-uppercase] input::placeholder {
+  text-transform: uppercase;
+}
+
 .app-shell {
   min-height: 100vh;
   padding-bottom: 40px;
