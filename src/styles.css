@@ -1064,9 +1064,90 @@ button:focus-visible {
 @media (max-width:760px){.word-search-layout{grid-template-columns:1fr}.school-level{align-items:flex-start}.school-level>span{flex-basis:100%}.letter-grid{gap:3px;padding:8px}.letter-cell{border-radius:7px}.english-answers{grid-template-columns:1fr}.english-picture{height:135px;font-size:5.5rem}}
 .exercise-type{display:inline-block;background:#e9e4f6;color:#5b4b82;border-radius:99px;padding:7px 12px;font-size:.78rem;font-weight:1000;letter-spacing:.04em}.english-target{font-size:clamp(2.5rem,7vw,4.5rem)!important;letter-spacing:.12em}.english-listen{font-size:5rem;padding:16px}.english-image-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:680px;margin:20px auto 0}.english-image-options .answer{display:grid;place-items:center;gap:5px;background:#fff}.english-image-options .answer span{font-size:3.5rem}.english-image-options .answer small{font-weight:1000;color:#5c507b}.english-search{background:linear-gradient(135deg,#e9f5ff,#fff);border-radius:27px;padding:20px;box-shadow:0 10px 25px #47366717}.english-search>h3,.english-search>p{text-align:center;color:#51436e}.english-search-layout{display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(220px,.8fr);gap:18px;align-items:start}.english-word-list{background:#fff;border-radius:20px;padding:15px}.english-word-list>div{display:flex;align-items:center;gap:10px;padding:7px;border-bottom:1px solid #eee9f5}.english-word-list>div span{font-size:1.7rem}.english-word-list>div strong{flex:1;color:#50436e;letter-spacing:.08em}.english-word-list>div.done{color:#378252;opacity:.65}.english-word-list>button{width:100%}
 @media(max-width:760px){.english-image-options{grid-template-columns:1fr}.english-image-options .answer span{font-size:2.4rem}.english-search-layout{grid-template-columns:1fr}}
-.creative-board .game-top{align-items:center}.board-toolbar{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin:12px 0}.board-toolbar>label{display:flex;align-items:center;gap:7px;padding:8px 10px;background:#fff;border:1px solid #e9e3f4;border-radius:14px;color:#51436e;font-weight:800}.board-toolbar select{min-height:38px;border:1px solid #ded6ed;border-radius:9px;color:#51436e;background:#fff;padding:4px 8px;font-size:1rem}.board-toolbar button:disabled{opacity:.45}.board-color-label{flex-wrap:wrap}.board-colors{display:flex;gap:5px}.board-color{width:30px;height:30px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #d8d1e4;cursor:pointer}.board-color.selected{outline:3px solid #7864c9}.board-text-input{min-height:44px;flex:1 1 180px;max-width:300px;border:2px solid #ded6ed;border-radius:12px;padding:8px 12px;font:inherit}.board-canvas{display:block;width:100%;height:auto;aspect-ratio:5/3;background:#fff;border:6px solid #fff;border-radius:22px;box-shadow:0 8px 22px #47366720;touch-action:none;cursor:crosshair}.board-canvas.text-mode{cursor:text}.board-hint,.board-saved{text-align:center;color:#706782;font-weight:700;margin:9px 0}.board-hint{background:#f5f1fb;border-radius:14px;padding:10px}
+.creative-board .game-top { align-items: center; gap: 12px; }
+.board-toolbar {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 14px;
+  background: #fff;
+  border: 2px solid #e9e3f4;
+  border-radius: 20px;
+  box-shadow: 0 5px 14px #48366d12;
+}
+.board-tools, .board-options, .board-picks, .board-palette, .board-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.board-tools { padding-bottom: 12px; border-bottom: 1px solid #eee9f5; }
+.board-toolbar button, .board-actions button { min-height: 44px; touch-action: manipulation; }
+.board-tools button { padding-inline: 13px; }
+.board-options label, .board-palette { color: #51436e; font-weight: 800; }
+.board-options label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.board-options select, .board-text-input {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid #ded6ed;
+  border-radius: 10px;
+  color: #51436e;
+  background: #fff;
+  padding: 6px 9px;
+  font: inherit;
+}
+.board-text-input { flex: 1 1 160px; min-width: 0; max-width: 300px; }
+.board-options .board-fill { gap: 5px; padding: 8px 4px; cursor: pointer; }
+.board-fill input { width: 20px; height: 20px; accent-color: #7864c9; }
+.board-pick {
+  min-width: 44px;
+  padding: 0 6px;
+  background: #f5f1fb;
+  color: #51436e;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.board-pick[aria-pressed="true"] { background: #ede4ff; border-color: #7864c9; }
+.board-palette { gap: 7px; }
+.board-palette > span { margin-right: 4px; }
+.board-color {
+  width: 44px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #b9aecb;
+}
+.board-color[aria-pressed="true"] { box-shadow: 0 0 0 2px #6b51bc; }
+.board-custom-color {
+  width: 44px;
+  height: 42px;
+  padding: 4px;
+  border: 1px solid #ded6ed;
+  border-radius: 10px;
+  background: #f5f1fb;
+  cursor: pointer;
+}
+.board-paper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  background: #fff;
+  border: 5px solid #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px #47366724;
+}
+.board-canvas, .board-preview { grid-area: 1 / 1; display: block; width: 100%; height: auto; aspect-ratio: 5 / 3; }
+.board-canvas { touch-action: none; cursor: crosshair; }
+.board-canvas.text-mode { cursor: text; }
+.board-preview { pointer-events: none; }
+.board-actions { justify-content: center; margin-top: 14px; }
+.board-actions button:disabled { opacity: .45; cursor: default; }
+.board-hint, .board-saved { text-align: center; color: #706782; font-weight: 700; margin: 9px 0; }
+.board-hint { background: #f5f1fb; border-radius: 14px; padding: 10px; }
+.board-save-error { color: #942546; }
 .board-menu-card{display:flex;align-items:center;gap:15px;max-width:900px;margin:22px auto 0;padding:17px 20px;background:#fff;border:2px solid #e9e3f4;border-radius:23px;box-shadow:0 5px 15px #48366d12}.board-menu-card .game-icon{font-size:2.6rem}.board-menu-card h2{margin:0;color:#51436e}.board-menu-card p{margin:4px 0;color:#706782}.board-menu-card .primary{margin-left:auto}
-@media(max-width:760px){.board-toolbar{justify-content:flex-start}.board-toolbar>button{min-height:44px}.board-color-label{width:100%}.creative-board .game-top{align-items:flex-start}}
+@media (max-width: 760px) { .creative-board .game-top { align-items: flex-start; } .board-actions { justify-content: flex-start; } }
 
 /* Shared visual polish: keep the playful palette, with calmer surfaces and clearer hierarchy. */
 body {
