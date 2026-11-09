@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
-import type { GameResult, Language, SchoolLevel } from '../types';
-import { calculateStars, shuffle } from '../utils/gameLogic';
+import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, pickExercises, shuffle } from '../utils/gameLogic';
 
 type Choice = { icon: string; label: string };
 type Round = { picture: string; prompt: string; hint: string; choices: Choice[]; answer: number };
@@ -9,6 +10,7 @@ type Round = { picture: string; prompt: string; hint: string; choices: Choice[];
 const roundsFor = (lang: Language, level: SchoolLevel): Round[] => {
   const eu = lang === 'eu';
   const round = (picture: string, prompt: string, hint: string, choices: [Choice, Choice, Choice, Choice], answer: number): Round => ({ picture, prompt, hint, choices, answer });
+  const choice = (icon: string, basque: string, spanish: string) => ({ icon, label: eu ? basque : spanish });
 
   if (level === 'lh1') return [
     round('🐸', eu ? 'Non bizi da igela normalean?' : '¿Dónde suele vivir una rana?', eu ? 'Pentsatu non dagoen ura.' : 'Piensa dónde hay agua.', [
@@ -37,6 +39,27 @@ const roundsFor = (lang: Language, level: SchoolLevel): Round[] => {
     round('🌨️', eu ? 'Zer gertatzen zaio elurrari leku epel batean?' : '¿Qué le pasa a la nieve en un sitio templado?', eu ? 'Izotzari gauza bera gertatzen zaio.' : 'Al hielo le ocurre lo mismo.', [
       { icon: '💧', label: eu ? 'Urtu egiten da' : 'Se derrite' }, { icon: '🌱', label: eu ? 'Hazi egiten da' : 'Crece' },
       { icon: '🪨', label: eu ? 'Harri bihurtzen da' : 'Se vuelve piedra' }, { icon: '🔥', label: eu ? 'Su hartzen du' : 'Se enciende' },
+    ], 0),
+    round('🦆', eu ? 'Zein animaliak ditu lumak?' : '¿Qué animal tiene plumas?', eu ? 'Hegazti bat da.' : 'Es un ave.', [
+      choice('🦆', 'Ahateak', 'El pato'), choice('🐸', 'Igelak', 'La rana'), choice('🐟', 'Arrainak', 'El pez'), choice('🐈', 'Katuak', 'El gato'),
+    ], 0),
+    round('🐄', eu ? 'Zer jaten du behiak zelai batean?' : '¿Qué come una vaca en el campo?', eu ? 'Berdea da eta lurrean hazten da.' : 'Es verde y crece en el suelo.', [
+      choice('🌿', 'Belarra', 'Hierba'), choice('🪨', 'Harriak', 'Piedras'), choice('🍦', 'Izozkia', 'Helado'), choice('🐟', 'Arrainak', 'Peces'),
+    ], 0),
+    round('🌳', eu ? 'Zein fruitu hazten da sagarrondoan?' : '¿Qué fruta crece en el manzano?', eu ? 'Gorria edo berdea izan daiteke.' : 'Puede ser roja o verde.', [
+      choice('🍎', 'Sagarra', 'La manzana'), choice('🍌', 'Banana', 'El plátano'), choice('🍇', 'Mahatsa', 'La uva'), choice('🍓', 'Marrubia', 'La fresa'),
+    ], 0),
+    round('🌬️', eu ? 'Zerk mugitzen ditu hostoak airean?' : '¿Qué mueve las hojas por el aire?', eu ? 'Aurpegian senti dezakezu.' : 'Puedes sentirlo en la cara.', [
+      choice('🌬️', 'Haizeak', 'El viento'), choice('🌙', 'Ilargiak', 'La Luna'), choice('🪨', 'Harriak', 'La piedra'), choice('❄️', 'Izotzak', 'El hielo'),
+    ], 0),
+    round('👣', eu ? 'Zein lurzorutan geratzen dira oinatzak errazago?' : '¿En qué suelo quedan huellas más fácilmente?', eu ? 'Biguna eta hezea da.' : 'Es blando y húmedo.', [
+      choice('🟤', 'Lokatzean', 'En el barro'), choice('🪨', 'Harri leunean', 'En la piedra lisa'), choice('🪟', 'Beiran', 'En el vidrio'), choice('🧱', 'Adreiluan', 'En el ladrillo'),
+    ], 0),
+    round('🐿️', eu ? 'Zein animalia igotzen da zuhaitzera intxaurrak bilatzera?' : '¿Qué animal trepa al árbol a buscar nueces?', eu ? 'Isats iletsua du.' : 'Tiene una cola peluda.', [
+      choice('🐿️', 'Urtxintxa', 'La ardilla'), choice('🐠', 'Arraina', 'El pez'), choice('🐋', 'Balea', 'La ballena'), choice('🐧', 'Pinguinoa', 'El pingüino'),
+    ], 0),
+    round('🌙', eu ? 'Noiz ikusten da errazago izarren argia?' : '¿Cuándo es más fácil ver la luz de las estrellas?', eu ? 'Zerua ilun dagoenean.' : 'Cuando el cielo está oscuro.', [
+      choice('🌃', 'Gau oskarbian', 'En una noche despejada'), choice('☀️', 'Eguerdian', 'Al mediodía'), choice('🌫️', 'Lainoa dagoenean', 'Cuando hay niebla'), choice('🌧️', 'Euri zaparradan', 'Durante un chaparrón'),
     ], 0),
   ];
 
@@ -68,15 +91,37 @@ const roundsFor = (lang: Language, level: SchoolLevel): Round[] => {
       { icon: '🫁', label: eu ? 'Birikak' : 'Los pulmones' }, { icon: '👀', label: eu ? 'Begiak' : 'Los ojos' },
       { icon: '🐟', label: eu ? 'Zakatzak' : 'Las branquias' }, { icon: '🦷', label: eu ? 'Hortzak' : 'Los dientes' },
     ], 2),
+    round('💧', eu ? 'Eguzkitan dagoen putzu txiki bateko ura desagertzen doa. Zer gertatzen ari da?' : 'Un charco al sol se hace cada vez más pequeño. ¿Qué le pasa al agua?', eu ? 'Ur-lurruna airera doa.' : 'Parte del agua pasa al aire como vapor.', [
+      choice('🌫️', 'Lurrundu egiten da', 'Se evapora'), choice('🧊', 'Izoztu egiten da', 'Se congela'), choice('🧂', 'Gatz bihurtzen da', 'Se convierte en sal'), choice('🌧️', 'Euri gisa erortzen da', 'Cae en forma de lluvia'),
+    ], 0),
+    round('🧲', eu ? 'Zein objektu erakarriko du iman batek?' : '¿Qué objeto atraerá un imán?', eu ? 'Aukeratu burdina duena.' : 'Elige el que contiene hierro.', [
+      choice('📎', 'Altzairuzko klipa', 'Un clip de acero'), choice('📄', 'Paper-orria', 'Una hoja de papel'), choice('🪵', 'Zurezko makila', 'Un palo de madera'), choice('🧴', 'Plastikozko botila', 'Una botella de plástico'),
+    ], 0),
+    round('🐋', eu ? 'Balea uretatik azalera igotzen da airea hartzera. Zerekin arnasten du?' : 'La ballena sube a la superficie a tomar aire. ¿Con qué respira?', eu ? 'Ugaztuna da, gu bezala.' : 'Es un mamífero, como nosotros.', [
+      choice('🫁', 'Birikez', 'Con pulmones'), choice('🐟', 'Zakatzez', 'Con branquias'), choice('🦴', 'Hezurrez', 'Con huesos'), choice('👀', 'Begiez', 'Con los ojos'),
+    ], 0),
+    round('🦉', eu ? 'Hontzak sagu bat harrapatu du jateko. Zein da harraparia?' : 'Una lechuza atrapa un ratón para comer. ¿Cuál es el depredador?', eu ? 'Harraparia beste animalia ehizatzen duena da.' : 'El depredador es quien caza al otro animal.', [
+      choice('🦉', 'Hontza', 'La lechuza'), choice('🐁', 'Sagua', 'El ratón'), choice('🌳', 'Zuhaitza', 'El árbol'), choice('🌾', 'Belarra', 'La hierba'),
+    ], 0),
+    round('🔦', eu ? 'Linterna baten aurrean kartoi opaku bat jartzen dugu. Zer agertuko da atzeko horman?' : 'Ponemos un cartón opaco delante de una linterna. ¿Qué aparece en la pared de atrás?', eu ? 'Kartoiak argia oztopatzen du.' : 'El cartón bloquea la luz.', [
+      choice('⬛', 'Itzala', 'Una sombra'), choice('🌈', 'Ortzadarra', 'Un arcoíris'), choice('💧', 'Ur tanta bat', 'Una gota de agua'), choice('🪞', 'Ispiluko isla', 'Un reflejo de espejo'),
+    ], 0),
+    round('🫙', eu ? 'Zein material urtu daiteke berriro pote berri bat egiteko?' : '¿Qué material puede fundirse para fabricar otro tarro?', eu ? 'Gardena eta hauskorra izan daiteke.' : 'Puede ser transparente y frágil.', [
+      choice('🫙', 'Beira', 'Vidrio'), choice('📃', 'Papera', 'Papel'), choice('🪵', 'Zura', 'Madera'), choice('🧶', 'Artilea', 'Lana'),
+    ], 0),
+    round('🐧', eu ? 'Pinguinoaren hegoek ez diote hegan egiten uzten. Zertarako erabiltzen ditu?' : 'Las alas del pingüino no le sirven para volar. ¿Para qué las usa?', eu ? 'Batez ere uretan laguntzen diote.' : 'Le ayudan sobre todo dentro del agua.', [
+      choice('🌊', 'Igeri egiteko', 'Para nadar'), choice('👂', 'Entzuteko', 'Para oír'), choice('🐟', 'Janaria mastekatzeko', 'Para masticar'), choice('🥚', 'Arrautzak erruteko', 'Para poner huevos'),
+    ], 0),
   ];
 };
 
-export function NatureSort({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+export function NatureSort({ lang, level, profile, onComplete }: { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (r: GameResult) => void }) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const [rounds] = useState(() => shuffle(roundsFor(lang, level)).slice(0, 5).map((item) => {
-    const choices = shuffle(item.choices);
-    return { ...item, choices, answer: choices.findIndex((choice) => choice.label === item.choices[item.answer].label) };
-  }));
+  const rounds = useExerciseRound(`science:${profile}:${level}:${lang}`, recent =>
+    pickExercises(roundsFor(lang, level), 5, recent, item => item.prompt).map(item => {
+      const choices = shuffle(item.choices);
+      return { ...item, choices, answer: choices.indexOf(item.choices[item.answer]) };
+    }), round => round.map(item => item.prompt));
   const [step, setStep] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [mistake, setMistake] = useState(false);

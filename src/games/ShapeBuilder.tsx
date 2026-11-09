@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
-import type { GameResult, Language, SchoolLevel } from '../types';
-import { calculateStars, shuffle } from '../utils/gameLogic';
+import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, pickExercises, shuffle } from '../utils/gameLogic';
 
 type Shape = { icon: string; color: string; name: { eu: string; es: string } };
 type Puzzle = { cells: (Shape | null)[]; answer: Shape; options: Shape[] };
@@ -13,13 +14,15 @@ const diamond: Shape = { icon: '◆', color: '#8c78d8', name: { eu: 'erronboa', 
 
 const shapes = [circle, square, triangle, diamond];
 const patterns: Record<SchoolLevel, number[][]> = {
-  lh1: [[0, 0, 1], [0, 1, 1], [0, 1, 2], [0, 1, 0, 2]],
-  lh3: [[0, 1, 2, 1], [0, 0, 1, 2], [0, 1, 2, 3], [0, 1, 2, 1, 3], [0, 1, 1, 2, 3]],
+  lh1: [[0, 0, 1], [0, 1, 1], [0, 1, 2], [0, 1, 0, 2], [0, 1], [0, 0, 0, 1], [0, 0, 1, 1], [0, 0, 1, 2], [0, 1, 2, 3]],
+  lh3: [[0, 1, 2, 1], [0, 0, 1, 2], [0, 1, 2, 3], [0, 1, 2, 1, 3], [0, 1, 1, 2, 3], [0, 0, 1, 2, 2], [0, 1, 2, 2, 1], [0, 1, 0, 2, 0, 3], [0, 0, 1, 1, 2, 2]],
 };
 
-function makePuzzles(level: SchoolLevel): Puzzle[] {
+const patternId = (pattern: number[]) => pattern.join('');
+
+function makePuzzles(level: SchoolLevel, selected: number[][]): Puzzle[] {
   const size = level === 'lh1' ? 8 : 12;
-  return shuffle(patterns[level]).slice(0, 3).map(pattern => {
+  return selected.map(pattern => {
     const palette = shuffle(shapes);
     const gap = 1 + Math.floor(Math.random() * (size - 2));
     const cells = Array.from({ length: size }, (_, index) => index === gap ? null : palette[pattern[index % pattern.length]]);
@@ -27,9 +30,11 @@ function makePuzzles(level: SchoolLevel): Puzzle[] {
   });
 }
 
-export function ShapeBuilder({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+export function ShapeBuilder({ lang, level, profile, onComplete }: { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (r: GameResult) => void }) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const [rounds] = useState(() => makePuzzles(level));
+  const selected = useExerciseRound(`shapes:${profile}:${level}`,
+    recent => pickExercises(patterns[level], 3, recent, patternId), round => round.map(patternId));
+  const [rounds] = useState(() => makePuzzles(level, selected));
   const [round, setRound] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [mistake, setMistake] = useState(false);

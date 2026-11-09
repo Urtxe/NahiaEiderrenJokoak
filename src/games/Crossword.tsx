@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
 import './Crossword.css';
 import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
 import { calculateStars } from '../utils/gameLogic';
-import { makeCrossword, type CrosswordBoard } from '../utils/crossword';
+import { makeCrossword } from '../utils/crossword';
 
 type Props = { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (result: GameResult) => void };
 const tr = (lang: Language, eu: string, es: string) => lang === 'eu' ? eu : es;
-const previousBoards = new Map<string, string[]>();
 const normalize = (word: string) => word.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleUpperCase();
 
 export function Crossword({ lang, level, profile, onComplete }: Props) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const key = `${lang}:${level}:${profile}`;
-  const [board] = useState<CrosswordBoard>(() => makeCrossword(lang, level, previousBoards.get(key)));
+  const board = useExerciseRound(`crossword:${profile}:${level}:${lang}`,
+    recent => makeCrossword(lang, level, recent), board => board.entries.map(entry => entry.answer));
   const [answers, setAnswers] = useState<string[]>(() => board.entries.map(() => ''));
   const [solved, setSolved] = useState<number[]>([]);
   const [active, setActive] = useState(0);
@@ -33,7 +33,6 @@ export function Crossword({ lang, level, profile, onComplete }: Props) {
       setAnswers(current => current.map((answer, index) => index === active ? activeEntry.answer : answer));
       const detail = tr(lang, 'Hitza ondo asmatu duzu!', '¡Has acertado la palabra!');
       if (nextSolved.length === board.entries.length) {
-        previousBoards.set(key, board.entries.map(entry => entry.answer));
         let summary = '';
         let teamWin: boolean | undefined;
         if (isTeam) {

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
 import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
-import { answerChoices, calculateStars, numberChoices } from '../utils/gameLogic';
-import { makeWordGrid, shuffleSearchWords, wordSearchCount } from '../utils/wordSearch';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { answerChoices, calculateStars, numberChoices, pickExercises, shuffle } from '../utils/gameLogic';
+import { makeWordGrid, wordSearchCount } from '../utils/wordSearch';
 
 type Word = { text: string; clue: string; icon: string };
 type WordGameProps = { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (result: GameResult) => void };
-const lastBasqueWords = new Map<string, Word[]>();
+const wordId = (word: { text: string }) => word.text;
 const wordSets: Record<SchoolLevel, Word[]> = {
   lh1: [
     { text: 'KATU', clue: 'Etxeko animalia, “miau” egiten du.', icon: '🐱' },
@@ -24,6 +25,15 @@ const wordSets: Record<SchoolLevel, Word[]> = {
     { text: 'ATE', clue: 'Gela batera sartzeko irekitzen dugu.', icon: '🚪' },
     { text: 'LIBURU', clue: 'Orrialdeak ditu eta irakurtzeko balio du.', icon: '📘' },
     { text: 'ILARGI', clue: 'Gauez zeruan ikusten dugu, batzuetan biribil-biribila.', icon: '🌙' },
+    { text: 'ZALDI', clue: 'Lau hanka eta zurda ditu. Trostan ibil daiteke.', icon: '🐴' },
+    { text: 'GAZTA', clue: 'Esnearekin egiten den janaria.', icon: '🧀' },
+    { text: 'OIN', clue: 'Ibiltzeko lurrean jartzen dugun gorputz-atala.', icon: '🦶' },
+    { text: 'ERLE', clue: 'Lorez lore ibiltzen da eta eztia egiten du.', icon: '🐝' },
+    { text: 'GILTZA', clue: 'Sarraila irekitzeko erabiltzen dugu.', icon: '🔑' },
+    { text: 'AHATE', clue: 'Urmaelean igeri egiten duen hegaztia.', icon: '🦆' },
+    { text: 'UDA', clue: 'Urteko sasoirik beroena.', icon: '🏖️' },
+    { text: 'BELAR', clue: 'Zelaietan hazten da eta berdea da.', icon: '🌿' },
+    { text: 'ERRATZ', clue: 'Lurreko hautsa biltzeko erabiltzen dugu.', icon: '🧹' },
   ],
   lh3: [
     { text: 'TXIMELETA', clue: 'Hego koloretsuak dituen intsektua.', icon: '🦋' },
@@ -41,18 +51,24 @@ const wordSets: Record<SchoolLevel, Word[]> = {
     { text: 'ARGAZKIA', clue: 'Kamerarekin ateratzen dugun irudia.', icon: '📷' },
     { text: 'ZUBIA', clue: 'Ibaia gainetik zeharkatzeko eraikuntza.', icon: '🌉' },
     { text: 'UDAZKENA', clue: 'Hosto asko lurrera erortzen diren urte-sasoia.', icon: '🍂' },
+    { text: 'EGUNSENTI', clue: 'Eguzkia ateratzen hasten den unea.', icon: '🌅' },
+    { text: 'ATERKIA', clue: 'Irekitzen dugunean, euritik babesten gaitu.', icon: '☂️' },
+    { text: 'BARRASKILO', clue: 'Oso poliki dabil eta oskola bizkarrean darama.', icon: '🐌' },
+    { text: 'SUMENDIA', clue: 'Barrutik laba atera dakiokeen mendia.', icon: '🌋' },
+    { text: 'IPUINA', clue: 'Irakurri edo kontatu daitekeen istorio laburra.', icon: '📖' },
+    { text: 'TXISTUA', clue: 'Putz eginez jotzen den euskal musika-tresna.', icon: '🪈' },
+    { text: 'ERREKA', clue: 'Ibaia baino txikiagoa den ur-lasterra.', icon: '💧' },
+    { text: 'KOADERNOA', clue: 'Oharrak idazteko erabiltzen dugun orri multzoa.', icon: '📓' },
+    { text: 'ESKULARRU', clue: 'Hotza egiten duenean, eskua estaltzeko janzten dugu.', icon: '🧤' },
   ],
 };
 const tr = (lang: Language, eu: string, es: string) => lang === 'eu' ? eu : es;
 
 export function WordSearch({ lang, level, profile, onComplete }: WordGameProps) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const puzzleKey = `${profile}:${level}`;
-  const [{ words, grid }] = useState(() => {
-    const words = shuffleSearchWords(wordSets[level], lastBasqueWords.get(puzzleKey)).slice(0, wordSearchCount);
-    return { words, grid: makeWordGrid(level, words) };
-  });
-  useEffect(() => { lastBasqueWords.set(puzzleKey, words); }, [puzzleKey, words]);
+  const words = useExerciseRound(`words:${profile}:${level}`,
+    recent => pickExercises(wordSets[level], wordSearchCount, recent, wordId), round => round.map(wordId));
+  const [grid] = useState(() => makeWordGrid(level, words));
   const [selected, setSelected] = useState<number[]>([]);
   const [found, setFound] = useState<number[]>([]);
   const size = grid.length;
@@ -60,7 +76,7 @@ export function WordSearch({ lang, level, profile, onComplete }: WordGameProps) 
   const selectCell = (i: number) => {
     if (advancing) return;
     if (selected.includes(i)) setSelected(selected.slice(0, selected.indexOf(i)));
-    else if (selected.length < (level === 'lh1' ? 6 : 9)) setSelected([...selected, i]);
+    else if (selected.length < size) setSelected([...selected, i]);
   };
   const checkWord = () => {
     const start = selected[0];
@@ -85,22 +101,41 @@ export function WordSearch({ lang, level, profile, onComplete }: WordGameProps) 
   };
   return <section className="game-shell learning-game"><div className="game-top"><div><span className="eyebrow">🔎 EUSKARAZKO HITZAK</span><h2>{tr(lang, 'Letra zopa', 'Sopa de letras')}</h2><p>{tr(lang, 'Aurkitu hitzak; letraz letra hautatu, lerro zuzenean.', 'Encuentra las palabras; selecciona sus letras en línea recta.')}</p></div><span className="counter">{found.length} / {words.length}</span></div>
     <div className="word-search-layout"><div className="letter-grid" style={{ '--grid-size': size } as React.CSSProperties} aria-label={tr(lang, 'Letren taula', 'Cuadrícula de letras')}>{grid.flatMap((row, r) => row.map((cell, c) => { const i = r * size + c; return <button key={i} className={`letter-cell ${selected.includes(i) ? 'chosen' : ''} ${found.some(w => cell.word === w) && cell.word >= 0 ? 'word-found' : ''}`} onClick={() => selectCell(i)} disabled={advancing} aria-label={`${cell.letter}, ${r + 1}, ${c + 1}`}>{cell.letter}</button>; }))}</div>
-    <div className="word-clues"><h3>{tr(lang, 'Bilatu irudien pistak erabiliz', 'Busca con ayuda de las pistas')}</h3><p className="word-preview">{selectedWord || tr(lang, 'Hautatutako letrak hemen', 'Letras seleccionadas')}</p><button className="primary" onClick={checkWord} disabled={advancing || selected.length < 2}>{tr(lang, 'Hitza egiaztatu', 'Comprobar palabra')} →</button>{words.map((word, i) => <div className={`word-clue ${found.includes(i) ? 'done' : ''}`} key={word.text}><span>{word.icon}</span><div><strong>{found.includes(i) ? word.text : '•••••••••'.slice(0, word.text.length)}</strong><small>{word.clue}</small></div>{found.includes(i) && <b>✓</b>}</div>)}</div></div>
+    <div className="word-clues"><h3>{tr(lang, 'Bilatu irudien pistak erabiliz', 'Busca con ayuda de las pistas')}</h3><p className="word-preview">{selectedWord || tr(lang, 'Hautatutako letrak hemen', 'Letras seleccionadas')}</p><button className="primary" onClick={checkWord} disabled={advancing || selected.length < 2}>{tr(lang, 'Hitza egiaztatu', 'Comprobar palabra')} →</button>{words.map((word, i) => <div className={`word-clue ${found.includes(i) ? 'done' : ''}`} key={word.text}><span>{word.icon}</span><div><strong>{found.includes(i) ? word.text : '•'.repeat(word.text.length)}</strong><small>{word.clue}</small></div>{found.includes(i) && <b>✓</b>}</div>)}</div></div>
   </section>;
 }
 
 type MathQuestion = { a: number; b: number; op: '+' | '−' | '×'; answer: number };
-function makeMathQuestion(level: SchoolLevel): MathQuestion {
-  const op: MathQuestion['op'] = level === 'lh1' ? (Math.random() > .35 ? '+' : '−') : (['+', '−', '×'] as const)[Math.floor(Math.random() * 3)];
-  const max = level === 'lh1' ? 10 : 100;
-  if (op === '×') { const a = 2 + Math.floor(Math.random() * 8), b = 2 + Math.floor(Math.random() * 10); return { a, b, op, answer: a * b }; }
-  const a = 1 + Math.floor(Math.random() * max), b = 1 + Math.floor(Math.random() * (op === '+' ? Math.max(1, max - a) : a));
-  return { a, b, op, answer: op === '+' ? a + b : a - b };
+const mathId = ({ a, b, op }: MathQuestion) => `${a}${op}${b}`;
+function mathQuestions(level: SchoolLevel, recent: readonly string[]) {
+  const max = level === 'lh1' ? 20 : 100;
+  const sums: MathQuestion[] = [];
+  const differences: MathQuestion[] = [];
+  const products: MathQuestion[] = [];
+  for (let a = 1; a <= max; a++) {
+    for (let b = 1; b <= a; b++) {
+      if (a + b <= max) sums.push({ a, b, op: '+', answer: a + b });
+      differences.push({ a, b, op: '−', answer: a - b });
+    }
+  }
+  if (level === 'lh3') {
+    for (let a = 2; a <= 10; a++) {
+      for (let b = 2; b <= a; b++) products.push({ a, b, op: '×', answer: a * b });
+    }
+  }
+  return shuffle([
+    ...pickExercises(sums, level === 'lh1' ? 5 : 3, recent, mathId),
+    ...pickExercises(differences, 3, recent, mathId),
+    ...pickExercises(products, level === 'lh1' ? 0 : 2, recent, mathId),
+  ]).map(question => ({ ...question, choices: numberChoices(question.answer).options }));
 }
-export function MathAdventure({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+export function MathAdventure({ lang, level, profile, onComplete }: WordGameProps) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const [round, setRound] = useState(0); const [question, setQuestion] = useState(() => makeMathQuestion(level)); const [choices, setChoices] = useState(() => numberChoices(question.answer).options);
-  const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const total = 8;
+  const questions = useExerciseRound(`math:${profile}:${level}`,
+    recent => mathQuestions(level, recent), round => round.map(mathId));
+  const [round, setRound] = useState(0);
+  const { choices, ...question } = questions[round];
+  const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const total = questions.length;
   const choose = (value: number) => {
     if (advancing) return;
     if (value !== question.answer) {
@@ -111,7 +146,7 @@ export function MathAdventure({ lang, level, onComplete }: { lang: Language; lev
     const score = correct + (mistake ? 0 : 1);
     showFeedback(true, undefined, () => {
       if (round + 1 === total) onComplete({ game: 'math', score, correct: score, total, stars: calculateStars(score, total) });
-      else { const next = makeMathQuestion(level); setRound(round + 1); setCorrect(score); setQuestion(next); setChoices(numberChoices(next.answer).options); setMistake(false); }
+      else { setRound(round + 1); setCorrect(score); setMistake(false); }
     });
   };
   const visualCount = level === 'lh1' && question.answer <= 20;
@@ -123,7 +158,6 @@ export function MathAdventure({ lang, level, onComplete }: { lang: Language; lev
 
 type EnglishWord = { text: string; image: string; category: string };
 type VocabRound = { kind: 'picture-word' | 'word-picture' | 'listen-picture'; word: EnglishWord; options: EnglishWord[] };
-const lastEnglishWords = new Map<string, EnglishWord[]>();
 const englishWords: Record<SchoolLevel, EnglishWord[]> = {
   lh1: [
     { text: 'CAT', image: '🐱', category: 'animals' }, { text: 'DOG', image: '🐶', category: 'animals' },
@@ -132,6 +166,11 @@ const englishWords: Record<SchoolLevel, EnglishWord[]> = {
     { text: 'GREEN', image: '🟢', category: 'colours' }, { text: 'SUN', image: '☀️', category: 'nature' },
     { text: 'MOON', image: '🌙', category: 'nature' }, { text: 'APPLE', image: '🍎', category: 'food' },
     { text: 'BOOK', image: '📘', category: 'school' }, { text: 'PENCIL', image: '✏️', category: 'school' },
+    { text: 'DUCK', image: '🦆', category: 'animals' }, { text: 'FROG', image: '🐸', category: 'animals' },
+    { text: 'YELLOW', image: '🟡', category: 'colours' }, { text: 'PINK', image: '🩷', category: 'colours' },
+    { text: 'STAR', image: '⭐', category: 'nature' }, { text: 'TREE', image: '🌳', category: 'nature' },
+    { text: 'MILK', image: '🥛', category: 'food' }, { text: 'EGG', image: '🥚', category: 'food' },
+    { text: 'RULER', image: '📏', category: 'school' },
   ],
   lh3: [
     { text: 'FAMILY', image: '👨‍👩‍👧', category: 'family' }, { text: 'SISTER', image: '👧', category: 'family' },
@@ -141,10 +180,14 @@ const englishWords: Record<SchoolLevel, EnglishWord[]> = {
     { text: 'BANANA', image: '🍌', category: 'food' }, { text: 'CLOUD', image: '☁️', category: 'weather' },
     { text: 'RAINY', image: '🌧️', category: 'weather' }, { text: 'SUNNY', image: '🌞', category: 'weather' },
     { text: 'JACKET', image: '🧥', category: 'clothes' }, { text: 'SHOES', image: '👟', category: 'clothes' },
+    { text: 'GRANDMA', image: '👵', category: 'family' }, { text: 'GRANDPA', image: '👴', category: 'family' },
+    { text: 'NOTEBOOK', image: '📓', category: 'school' }, { text: 'CHEESE', image: '🧀', category: 'food' },
+    { text: 'SNOWY', image: '🌨️', category: 'weather' }, { text: 'SCARF', image: '🧣', category: 'clothes' },
+    { text: 'GLOVES', image: '🧤', category: 'clothes' },
   ],
 };
-const makeVocabRounds = (level: SchoolLevel, previous?: EnglishWord[]): VocabRound[] => {
-  const selected = shuffleSearchWords(englishWords[level], previous).slice(0, 7);
+const makeVocabRounds = (level: SchoolLevel, recent: readonly string[]): VocabRound[] => {
+  const selected = pickExercises(englishWords[level], 7, recent, wordId);
   return selected.map((word, index) => ({
     kind: index < 3 ? 'picture-word' : index < 5 ? 'word-picture' : 'listen-picture',
     word,
@@ -180,13 +223,10 @@ function EnglishWordSearch({ lang, level, words, onFound }: { lang: Language; le
 
 export function EnglishQuest({ lang, level, profile, onComplete }: WordGameProps) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const puzzleKey = `${profile}:${level}`;
-  const [{ rounds, searchWords }] = useState(() => {
-    const rounds = makeVocabRounds(level, lastEnglishWords.get(puzzleKey));
-    return { rounds, searchWords: rounds.slice(0, wordSearchCount).map(round => round.word) };
-  });
+  const rounds = useExerciseRound(`english:${profile}:${level}`,
+    recent => makeVocabRounds(level, recent), round => round.map(({ word }) => word.text));
+  const searchWords = rounds.slice(0, wordSearchCount).map(round => round.word);
   const [step, setStep] = useState(0); const [correct, setCorrect] = useState(0); const [mistake, setMistake] = useState(false); const [searchDone, setSearchDone] = useState(false);
-  useEffect(() => { if (step === rounds.length) lastEnglishWords.set(puzzleKey, searchWords); }, [puzzleKey, rounds.length, searchWords, step]);
   const card = rounds[step]; const total = rounds.length + searchWords.length;
   const speak = (word: EnglishWord) => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(word.text.toLowerCase()); utterance.lang = 'en-GB'; window.speechSynthesis.speak(utterance); } };
   const choose = (word: EnglishWord) => {

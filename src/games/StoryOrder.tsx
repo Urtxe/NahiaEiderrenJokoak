@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
-import type { GameResult, Language, SchoolLevel } from '../types';
-import { calculateStars, shuffle } from '../utils/gameLogic';
+import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, pickExercises, shuffle } from '../utils/gameLogic';
 
 type StoryCard = { icon: string; eu: string; es: string };
 type Story = { eu: string; es: string; cards: StoryCard[] };
@@ -48,6 +49,42 @@ const stories: Record<SchoolLevel, Story[]> = {
       ['✈️', 'Hegazkina airera jaurtitzen dut.', 'Lanzo el avión al aire.'],
       ['🖐️', 'Lurrera erori den hegazkina jasotzen dut.', 'Recojo el avión cuando cae al suelo.'],
     ]),
+    story('Hortzak garbitzen', 'Nos lavamos los dientes', [
+      ['🪥', 'Hortzetako eskuila hartzen dut.', 'Cojo el cepillo de dientes.'],
+      ['🟢', 'Pasta pixka bat jartzen dut eskuilan.', 'Pongo un poco de pasta en el cepillo.'],
+      ['😁', 'Hortzak eskuilatzen ditut.', 'Me cepillo los dientes.'],
+      ['🚰', 'Eskuila garbitu eta bere lekuan uzten dut.', 'Enjuago el cepillo y lo guardo.'],
+    ]),
+    story('Elurrezko panpina', 'El muñeco de nieve', [
+      ['❄️', 'Elurra eskuekin bildu eta bola bat egiten dut.', 'Junto nieve y hago una bola.'],
+      ['⚪', 'Bola lurrean biratzen dut handiagoa izan arte.', 'Ruedo la bola por el suelo hasta que crece.'],
+      ['⛄', 'Bola txikiago bat jartzen dut handiaren gainean.', 'Pongo una bola pequeña sobre la grande.'],
+      ['🥕', 'Azenario bat jartzen diot sudur gisa.', 'Le pongo una zanahoria de nariz.'],
+    ]),
+    story('Fruta-mazedonia', 'La macedonia', [
+      ['🍎', 'Fruta aukeratzen dut.', 'Elijo la fruta.'],
+      ['🚰', 'Fruta garbitzen dut.', 'Lavo la fruta.'],
+      ['🥣', 'Fruta zatitu eta katilu batean nahasten dut.', 'Corto la fruta y la mezclo en un bol.'],
+      ['🥄', 'Mazedonia koilararekin jaten dut.', 'Me como la macedonia con una cuchara.'],
+    ]),
+    story('Kometa airean', 'La cometa', [
+      ['🧵', 'Haria kometari lotzen diot.', 'Ato el hilo a la cometa.'],
+      ['🏃', 'Haizeari begira korrika hasten naiz.', 'Empiezo a correr de cara al viento.'],
+      ['🪁', 'Kometak gora egiten du.', 'La cometa sube al cielo.'],
+      ['🖐️', 'Bukatzeko, haria bildu eta kometa jaitsi egiten da.', 'Al acabar, recojo el hilo y la cometa baja.'],
+    ]),
+    story('Puzzlea', 'El puzle', [
+      ['📦', 'Puzzlearen kutxa irekitzen dut.', 'Abro la caja del puzle.'],
+      ['🧩', 'Piezak mahai gainean zabaltzen ditut.', 'Extiendo las piezas sobre la mesa.'],
+      ['🖼️', 'Piezak elkartzen ditut irudia osatu arte.', 'Uno las piezas hasta completar el dibujo.'],
+      ['🤩', 'Amaitutako puzzlea erakusten dut.', 'Enseño el puzle terminado.'],
+    ]),
+    story('Esku garbiak', 'Las manos limpias', [
+      ['🚰', 'Eskuak urez bustitzen ditut.', 'Me mojo las manos con agua.'],
+      ['🧼', 'Xaboia hartu eta eskuak igurzten ditut.', 'Cojo jabón y me froto las manos.'],
+      ['💦', 'Xaboia urarekin kentzen dut.', 'Me aclaro el jabón con agua.'],
+      ['🧻', 'Eskuak lehortzen ditut.', 'Me seco las manos.'],
+    ]),
   ],
   lh3: [
     story('Tximeletaren bidaia', 'El viaje de la mariposa', [
@@ -92,22 +129,65 @@ const stories: Record<SchoolLevel, Story[]> = {
       ['📷', 'Tontorrean argazkia egiten dugu.', 'Hacemos una foto en la cima.'],
       ['🏠', 'Etxera itzuli eta argazkia erakusten dugu.', 'Volvemos a casa y enseñamos la foto.'],
     ]),
+    story('Hegaztientzako jantokia', 'El comedero de pájaros', [
+      ['🧃', 'Esne-kartoi hutsa garbitzen dugu.', 'Lavamos un cartón de leche vacío.'],
+      ['✂️', 'Heldu batek zulo bat egiten dio alboan.', 'Una persona adulta le hace una abertura lateral.'],
+      ['🌾', 'Zulotik haziak sartzen ditugu.', 'Echamos semillas por la abertura.'],
+      ['🌳', 'Jantokia adar batean zintzilikatzen dugu.', 'Colgamos el comedero en una rama.'],
+      ['🐦', 'Urrutitik ikusten dugu txori bat jatera hurbiltzen.', 'Observamos desde lejos cómo se acerca un pájaro a comer.'],
+    ]),
+    story('Antzerki-eguna', 'El día del teatro', [
+      ['📜', 'Antzezlan labur bat aukeratzen dugu.', 'Elegimos una obra corta.'],
+      ['🎭', 'Pertsonaiak banatzen ditugu.', 'Repartimos los personajes.'],
+      ['🗣️', 'Bakoitzak bere zatia ikasi eta elkarrekin entseatzen dugu.', 'Cada cual aprende su parte y ensayamos en grupo.'],
+      ['🎟️', 'Publikoa sartzen da eta antzezlana egiten dugu.', 'Entra el público y representamos la obra.'],
+      ['👏', 'Amaieran agurtu egiten dugu, txalo artean.', 'Al terminar, saludamos entre aplausos.'],
+    ]),
+    story('Motxilaren kremailera', 'La cremallera de la mochila', [
+      ['🎒', 'Motxila ixtera noa, baina kremailera trabatu da.', 'Voy a cerrar la mochila, pero la cremallera se ha atascado.'],
+      ['🔎', 'Begiratu eta oihal zati bat hortzen artean ikusten dut.', 'Miro y veo que hay tela entre los dientes.'],
+      ['↩️', 'Kremailera pixka bat atzerantz mugitzen dut.', 'Muevo la cremallera un poco hacia atrás.'],
+      ['🤏', 'Harrapatutako oihala askatzen dut.', 'Saco la tela que estaba atrapada.'],
+      ['✅', 'Motxila berriro ixten dut, oraingoan arazorik gabe.', 'Vuelvo a cerrar la mochila, esta vez sin problemas.'],
+    ]),
+    story('Izozkiak etxean', 'Polos en casa', [
+      ['🍊', 'Laranjak estutzen ditugu zukua ateratzeko.', 'Exprimimos las naranjas para sacarles el zumo.'],
+      ['🧃', 'Zukua izozki-moldeetara isurtzen dugu.', 'Vertemos el zumo en los moldes.'],
+      ['🥄', 'Molde bakoitzari makilatxoa jartzen diogu.', 'Ponemos un palito en cada molde.'],
+      ['🧊', 'Moldeak izozkailuan uzten ditugu zukua gogortu arte.', 'Dejamos los moldes en el congelador hasta que se endurece el zumo.'],
+      ['🍧', 'Izozkiak moldetik atera eta jaten ditugu.', 'Sacamos los polos de los moldes y los comemos.'],
+    ]),
+    story('Makilaren itzala', 'La sombra del palo', [
+      ['🥢', 'Makila bat tente jartzen dugu leku eguzkitsu batean.', 'Colocamos un palo vertical en un lugar soleado.'],
+      ['✏️', 'Goizean itzalaren punta lurrean markatzen dugu.', 'Por la mañana marcamos en el suelo la punta de la sombra.'],
+      ['⏳', 'Makila mugitu gabe, ordu batzuk itxaroten dugu.', 'Esperamos unas horas sin mover el palo.'],
+      ['📏', 'Eguerdian itzalaren punta berriz markatzen dugu.', 'Al mediodía volvemos a marcar la punta de la sombra.'],
+      ['🤔', 'Bi markak alderatzen ditugu itzala nola aldatu den ikusteko.', 'Comparamos las dos marcas para ver cómo ha cambiado la sombra.'],
+    ]),
+    story('Gelako egunkaria', 'El periódico de clase', [
+      ['💡', 'Zeri buruz idatziko dugun erabakitzen dugu.', 'Decidimos sobre qué vamos a escribir.'],
+      ['🎤', 'Gaiari buruzko informazioa biltzen dugu.', 'Recogemos información sobre el tema.'],
+      ['✍️', 'Informazioarekin albiste bat idazten dugu.', 'Con la información escribimos una noticia.'],
+      ['📰', 'Albisteak bildu eta egunkaria inprimatzen dugu.', 'Juntamos las noticias e imprimimos el periódico.'],
+      ['📮', 'Aleak ikaskideen artean banatzen ditugu.', 'Repartimos los ejemplares entre la clase.'],
+    ]),
   ],
 };
 
 const label = (lang: Language, eu: string, es: string) => lang === 'eu' ? eu : es;
 
-function makeRounds(level: SchoolLevel) {
-  return shuffle(stories[level]).slice(0, 4).map(story => {
+function makeRounds(level: SchoolLevel, recent: readonly string[]) {
+  return pickExercises(stories[level], 4, recent, story => story.eu).map(story => {
     const choices = shuffle(story.cards.map((_, index) => index));
     if (choices.every((card, index) => card === index)) choices.push(choices.shift()!);
     return { story, choices };
   });
 }
 
-export function StoryOrder({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+export function StoryOrder({ lang, level, profile, onComplete }: { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (r: GameResult) => void }) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const [rounds] = useState(() => makeRounds(level));
+  const rounds = useExerciseRound(`stories:${profile}:${level}`,
+    recent => makeRounds(level, recent), round => round.map(({ story }) => story.eu));
   const [round, setRound] = useState(0);
   const [sequence, setSequence] = useState<number[]>([]);
   const [correct, setCorrect] = useState(0);

@@ -1,23 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SchoolLevel } from '../types';
-import { makeWordGrid, shuffleSearchWords, wordSearchCount } from './wordSearch';
+import { makeWordGrid } from './wordSearch';
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('word searches', () => {
-  it('changes the six-word set even if the shuffle repeats', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(.5);
-    const pool = ['KATU', 'LUR', 'EGUZKI', 'TXAKUR', 'ETXE', 'MENDI', 'ITSASO'].map(text => ({ text }));
-    const first = shuffleSearchWords(pool).slice(0, wordSearchCount);
-    const second = shuffleSearchWords(pool, first).slice(0, wordSearchCount);
-
-    expect(new Set(second.map(word => word.text)).size).toBe(6);
-    expect(second.some(word => !first.includes(word))).toBe(true);
-  });
-
   const levels: [SchoolLevel, number, string[]][] = [
     ['lh1', 7, ['EGUZKI', 'TXAKUR', 'ITSASO', 'LIBURU', 'ILARGI', 'PENCIL']],
-    ['lh3', 10, ['TXIMELETA', 'ORTZADAR', 'ITSASARGI', 'URTXINTXA', 'MENDIZALE', 'EGUTEGIA']],
+    ['lh3', 10, ['TXIMELETA', 'ORTZADAR', 'ITSASARGI', 'URTXINTXA', 'MENDIZALE', 'BARRASKILO']],
   ];
 
   it.each(levels)('places all six words in straight lines at %s', (level, size, texts) => {

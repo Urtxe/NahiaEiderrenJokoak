@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
 import type { Difficulty, GameResult, Language, ProfileId, Stats } from '../types';
-import { calculateStars, detectiveCases, effectiveLevel, generateDetectivePuzzle, validateSequence } from '../utils/gameLogic';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, detectiveCases, effectiveLevel, generateDetectiveCase, pickExercises, validateSequence } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 
 export function MuseumDetectives({lang,difficulty,stats,profile,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;profile:ProfileId;onComplete:(r:GameResult)=>void}){
  const { advancing, showFeedback } = useAnswerFeedback();
- const level=effectiveLevel(difficulty,stats);const [caseName]=useState(()=>detectiveCases[lang][Math.floor(Math.random()*detectiveCases[lang].length)]);const [puzzles]=useState(()=>Array.from({length:5},()=>generateDetectivePuzzle(level,lang)));const [step,setStep]=useState(-1);const [correct,setCorrect]=useState(0);const [streak,setStreak]=useState(0);const [maxStreak,setMaxStreak]=useState(0);const [help,setHelp]=useState(false);const [hidden,setHidden]=useState(false);const [sequence,setSequence]=useState<string[]>([]);const [showHint,setShowHint]=useState(false); const t=(k:Parameters<typeof tr>[1])=>tr(lang,k);const puzzle=puzzles[Math.max(0,step)];
+ const level = effectiveLevel(difficulty, stats);
+ const [caseName] = useExerciseRound(`museum:${profile}:${lang}`,
+   recent => pickExercises(detectiveCases[lang], 1, recent, title => title), titles => titles);
+ const [puzzles] = useState(() => generateDetectiveCase(level, lang));
+ const [step,setStep]=useState(-1);const [correct,setCorrect]=useState(0);const [streak,setStreak]=useState(0);const [maxStreak,setMaxStreak]=useState(0);const [help,setHelp]=useState(false);const [hidden,setHidden]=useState(false);const [sequence,setSequence]=useState<string[]>([]);const [showHint,setShowHint]=useState(false); const t=(k:Parameters<typeof tr>[1])=>tr(lang,k);const puzzle=puzzles[Math.max(0,step)];
  useEffect(()=>{if(step>=0&&puzzle?.kind==='memory'){setHidden(false);const id=window.setTimeout(()=>setHidden(true),level==='seed'?3600:2200);return()=>clearTimeout(id);}},[step,puzzle,level]);
  const advance = (good: boolean) => {
    if (advancing) return;

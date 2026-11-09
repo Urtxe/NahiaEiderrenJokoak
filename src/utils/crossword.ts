@@ -1,4 +1,5 @@
 import type { Language, SchoolLevel } from '../types';
+import { pickExercises, shuffle } from './gameLogic';
 
 export type CrosswordEntry = { answer: string; clue: string };
 export type CrosswordCell = { letter: string; entries: number[] };
@@ -19,6 +20,12 @@ const pairs: Record<SchoolLevel, Pair[]> = {
       { eu: { answer: 'EGUZKI', clue: 'Egunez argia eta beroa ematen digu.' }, es: { answer: 'SOL', clue: 'Nos da luz y calor durante el día.' } },
       { eu: { answer: 'ATE', clue: 'Gelara sartzeko irekitzen dugu.' }, es: { answer: 'PUERTA', clue: 'Se abre para entrar en una habitación.' } },
       { eu: { answer: 'TXAKUR', clue: 'Zaunka egiten duen animalia.' }, es: { answer: 'PERRO', clue: 'Animal que ladra.' } },
+      { eu: { answer: 'AHATE', clue: 'Urmaelean igeri egiten duen hegaztia.' }, es: { answer: 'PATO', clue: 'Ave que nada en los estanques y hace cuac.' } },
+      { eu: { answer: 'GILTZA', clue: 'Sarraila irekitzeko balio du.' }, es: { answer: 'LLAVE', clue: 'Sirve para abrir una cerradura.' } },
+      { eu: { answer: 'ELUR', clue: 'Zerutik maluta zuritan erortzen da.' }, es: { answer: 'NIEVE', clue: 'Cae del cielo en copos blancos.' } },
+      { eu: { answer: 'ERLE', clue: 'Eztia egiten duen intsektua.' }, es: { answer: 'ABEJA', clue: 'Insecto que fabrica miel.' } },
+      { eu: { answer: 'ADAR', clue: 'Zuhaitzaren enborretik ateratzen da.' }, es: { answer: 'RAMA', clue: 'Sale del tronco del árbol.' } },
+      { eu: { answer: 'OGI', clue: 'Irinarekin egiten da eta ogitartekoak prestatzeko balio du.' }, es: { answer: 'PAN', clue: 'Se hace con harina y sirve para preparar bocadillos.' } },
     ],
     lh3: [
       { eu: { answer: 'TXIMELETA', clue: 'Hego koloretsuak dituen intsektua.' }, es: { answer: 'MARIPOSA', clue: 'Insecto con alas de colores.' } },
@@ -33,6 +40,12 @@ const pairs: Record<SchoolLevel, Pair[]> = {
       { eu: { answer: 'ITSASARGI', clue: 'Itsasontziei bidea erakusten dien kostaldeko dorrea.' }, es: { answer: 'FARO', clue: 'Torre costera que guía a los barcos.' } },
       { eu: { answer: 'BIZIKLETA', clue: 'Bi gurpil eta pedalei esker mugitzen da.' }, es: { answer: 'BICICLETA', clue: 'Tiene dos ruedas y avanza con pedales.' } },
       { eu: { answer: 'PLANETA', clue: 'Izar baten inguruan biraka dabilen astroa.' }, es: { answer: 'PLANETA', clue: 'Astro que gira alrededor de una estrella.' } },
+      { eu: { answer: 'SUMENDIA', clue: 'Barrutik laba atera dakiokeen mendia.' }, es: { answer: 'VOLCAN', clue: 'Montaña que puede expulsar lava.' } },
+      { eu: { answer: 'ATERKIA', clue: 'Euriak busti ez gaitzan irekitzen dugu.' }, es: { answer: 'PARAGUAS', clue: 'Se abre para que la lluvia no nos moje.' } },
+      { eu: { answer: 'BARRASKILOA', clue: 'Oskola bizkarrean daraman animalia motela.' }, es: { answer: 'CARACOL', clue: 'Animal lento que lleva una concha a cuestas.' } },
+      { eu: { answer: 'LAPITZA', clue: 'Grafitozko punta duen idazteko tresna.' }, es: { answer: 'LAPIZ', clue: 'Instrumento para escribir con punta de grafito.' } },
+      { eu: { answer: 'ZUBIA', clue: 'Ibai edo errepide baten gainetik igarotzeko eraikuntza.' }, es: { answer: 'PUENTE', clue: 'Construcción que permite pasar por encima de un río o una carretera.' } },
+      { eu: { answer: 'ITZALA', clue: 'Objektu batek argia oztopatzen duenean sortzen den gune iluna.' }, es: { answer: 'SOMBRA', clue: 'Zona oscura que se forma cuando un objeto bloquea la luz.' } },
     ],
 };
 const banks: Record<Language, Record<SchoolLevel, CrosswordEntry[]>> = {
@@ -73,15 +86,16 @@ function layout(entries: CrosswordEntry[]): Placed[] | undefined {
   return undefined;
 }
 
-export function makeCrossword(lang: Language, level: SchoolLevel, previous?: readonly string[]): CrosswordBoard {
+export function makeCrossword(lang: Language, level: SchoolLevel, recent: readonly string[] = []): CrosswordBoard {
   const pool = banks[lang][level];
+  const previous = recent.slice(-6);
   for (let attempt = 0; attempt < 20; attempt++) {
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    if (previous && shuffled.slice(0, 6).every(entry => previous.includes(entry.answer))) {
-      const replacement = shuffled.find(entry => !previous.includes(entry.answer));
-      if (replacement) [shuffled[5], shuffled[shuffled.indexOf(replacement)]] = [replacement, shuffled[5]];
+    // A fresh set may lack crossings. Relax the history preference before giving up on the layout.
+    const priority = attempt < 8 ? recent : attempt < 16 ? previous : [];
+    const chosen = pickExercises(pool, 6, priority, entry => entry.answer);
+    if (chosen.every(entry => previous.includes(entry.answer))) {
+      chosen[5] = shuffle(pool.filter(entry => !previous.includes(entry.answer)))[0];
     }
-    const chosen = shuffled.slice(0, 6);
     const placed = layout(chosen);
     if (!placed) continue;
     const minR = Math.min(...placed.map(word => word.row)), minC = Math.min(...placed.map(word => word.column));

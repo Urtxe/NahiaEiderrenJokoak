@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
-import type { Difficulty, GameResult, Language, Stats } from '../types';
-import { calculateStars, effectiveLevel, generateQuestions } from '../utils/gameLogic';
+import type { Difficulty, GameResult, Language, ProfileId, Stats } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, effectiveLevel, generateQuestions, quizQuestionId } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 
-export function AnimalRescue({lang,difficulty,stats,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;onComplete:(r:GameResult)=>void}) {
+export function AnimalRescue({lang,difficulty,stats,profile,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;profile:ProfileId;onComplete:(r:GameResult)=>void}) {
  const { advancing, showFeedback } = useAnswerFeedback();
- const [questions]=useState(()=>generateQuestions(effectiveLevel(difficulty,stats),lang,8));
+ const level = effectiveLevel(difficulty, stats);
+ const questions = useExerciseRound(`quiz:${profile}:${level}:${lang}`,
+   recent => generateQuestions(level, lang, 8, recent), round => round.map(quizQuestionId));
  const [step,setStep]=useState(0); const [wrong,setWrong]=useState(false); const [correct,setCorrect]=useState(0);
  const q=questions[step]; const rescued=useMemo(()=>['🦊','🐢','🦉','🐬','🦋','🦔','🐼','🦜'].slice(0,step),[step]);
  function choose(i: number) {

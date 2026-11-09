@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
-import type { GameResult, Language, SchoolLevel } from '../types';
-import { answerChoices, calculateStars, shuffle } from '../utils/gameLogic';
+import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { answerChoices, calculateStars, pickExercises } from '../utils/gameLogic';
 
 const place = (icon: string, eu: string, es: string) => ({ icon, eu, es });
 const places = {
@@ -21,6 +22,10 @@ const places = {
   station: place('🚉', 'Geltokia', 'La estación'),
   tunnel: place('🚇', 'Tunela', 'El túnel'),
   well: place('🪣', 'Putzua', 'El pozo'),
+  bakery: place('🥖', 'Okindegia', 'La panadería'),
+  harbour: place('⚓', 'Portua', 'El puerto'),
+  greenhouse: place('🌿', 'Negutegia', 'El invernadero'),
+  museum: place('🏛️', 'Museoa', 'El museo'),
 };
 
 type Place = keyof typeof places;
@@ -34,6 +39,9 @@ const clues: Record<SchoolLevel, ReturnType<typeof clue>[]> = {
     clue('Kulunkak eta txirrista bat ikusten ditugu. Non gaude?', 'Vemos unos columpios y un tobogán. ¿Dónde estamos?', 'park', 'garden', 'forest', 'station'),
     clue('Ipuin bat etxera eraman eta gero itzuli nahi dugu. Nora joango gara?', 'Queremos llevarnos un cuento a casa y devolverlo después. ¿Adónde vamos?', 'library', 'station', 'school', 'park'),
     clue('Olatuek oinak bustitzen dizkigute hondarrean. Non dago pista?', 'Las olas nos mojan los pies sobre la arena. ¿Dónde está la pista?', 'shore', 'bridge', 'cave', 'mountain'),
+    clue('Trena hartu behar dugu. Non itxarongo dugu?', 'Tenemos que coger el tren. ¿Dónde esperamos?', 'station', 'school', 'park', 'library'),
+    clue('Ogi beroaren usaina dator. Non erosi dezakegu ogia?', 'Huele a pan recién hecho. ¿Dónde podemos comprarlo?', 'bakery', 'orchard', 'library', 'station'),
+    clue('Aulki eta mahai txikiak daude, eta irakaslea arbelaren ondoan dago. Non gaude?', 'Hay sillas y mesas pequeñas, y la profe está junto a la pizarra. ¿Dónde estamos?', 'school', 'museum', 'station', 'garden'),
   ],
   lh3: [
     clue('Bi ertzen artean dago pista. Oinez joan gaitezke eta ura azpitik doa.', 'La pista está entre dos orillas. Podemos pasar a pie y el agua queda por debajo.', 'bridge', 'tunnel', 'shore', 'fountain'),
@@ -44,16 +52,21 @@ const clues: Record<SchoolLevel, ReturnType<typeof clue>[]> = {
     clue('Jendea ordutegiari begira dago eta nasan itxaroten du. Non gaude?', 'La gente mira el horario y espera en un andén. ¿Dónde estamos?', 'station', 'school', 'library', 'park'),
     clue('Ura gora ateratzen da eta harrizko ontzi batean erortzen da. Hiriko plazan dago.', 'El agua sale hacia arriba y cae en una pila de piedra. Está en la plaza.', 'fountain', 'well', 'lake', 'shore'),
     clue('Errekaren ura geldi geratu da leku zabal batean. Mendiak inguruan daude, eta itsasoko olaturik ez dago.', 'El agua se queda quieta en un lugar ancho, rodeado de montañas y sin olas de mar.', 'lake', 'shore', 'fountain', 'well'),
+    clue('Itsasontziek bidaia amaitu dute. Sokaz lotuta daude, eta arrantzaleek kaxak lehorrera ateratzen dituzte.', 'Los barcos han terminado el viaje. Están amarrados y los pescadores descargan cajas en tierra.', 'harbour', 'lighthouse', 'lake', 'station'),
+    clue('Kanpoan izotza dago, baina hemen landareak babestuta daude, horma gardenen artean.', 'Fuera hiela, pero aquí las plantas crecen protegidas entre paredes transparentes.', 'greenhouse', 'cave', 'orchard', 'forest'),
+    clue('Objektu zaharrak beirazko erakusleihoetan daude, bakoitza bere azalpenarekin.', 'Los objetos antiguos se guardan en vitrinas, cada uno con su cartel explicativo.', 'museum', 'library', 'bakery', 'school'),
+    clue('Aldapa luzea igo dugu. Orain, goitik, inguruko haranak eta herriak ikusten ditugu.', 'Hemos subido una larga cuesta. Desde lo alto vemos los valles y pueblos de alrededor.', 'mountain', 'lake', 'tunnel', 'park'),
   ],
 };
 
-export function TogetherQuest({ lang, level, onComplete }: { lang: Language; level: SchoolLevel; onComplete: (r: GameResult) => void }) {
+export function TogetherQuest({ lang, level, profile, onComplete }: { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (r: GameResult) => void }) {
   const { advancing, showFeedback } = useAnswerFeedback();
-  const [roundClues] = useState(() => shuffle(clues[level]).slice(0, level === 'lh1' ? 3 : 4).map(clue => {
-    const [correct, ...wrong] = clue.places.map(id => places[id]);
-    const { options, answer } = answerChoices(correct, wrong);
-    return { ...clue, choices: options, answer };
-  }));
+  const roundClues = useExerciseRound(`teamQuest:${profile}:${level}`, recent =>
+    pickExercises(clues[level], level === 'lh1' ? 3 : 4, recent, clue => clue.eu).map(clue => {
+      const [correct, ...wrong] = clue.places.map(id => places[id]);
+      const { options, answer } = answerChoices(correct, wrong);
+      return { ...clue, choices: options, answer };
+    }), round => round.map(clue => clue.eu));
   const [step, setStep] = useState(-1);
   const [mistake, setMistake] = useState(false);
   const [correct, setCorrect] = useState(0);

@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { useAnswerFeedback } from './AnswerFeedback';
 import type { Difficulty, GameResult, Language, ProfileId, Stats } from '../types';
-import { calculateStars, effectiveLevel, generateQuestions } from '../utils/gameLogic';
+import { useExerciseRound } from '../hooks/useExerciseRound';
+import { calculateStars, effectiveLevel, generateQuestions, quizQuestionId } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 export function QuizRace({lang,difficulty,stats,profile,onComplete}:{lang:Language;difficulty:Difficulty;stats:Stats;profile:ProfileId;onComplete:(r:GameResult)=>void}) {
  const { advancing, showFeedback } = useAnswerFeedback();
- const [questions]=useState(()=>generateQuestions(effectiveLevel(difficulty,stats),lang,10));const [step,setStep]=useState(0);const [correct,setCorrect]=useState(0);const [mine,setMine]=useState(0);const [friend,setFriend]=useState(0);const q=questions[step]; const joint=profile==='team';
+ const level = effectiveLevel(difficulty, stats);
+ const questions = useExerciseRound(`quiz:${profile}:${level}:${lang}`,
+   recent => generateQuestions(level, lang, 10, recent), round => round.map(quizQuestionId));
+ const [step,setStep]=useState(0);const [correct,setCorrect]=useState(0);const [mine,setMine]=useState(0);const [friend,setFriend]=useState(0);const q=questions[step]; const joint=profile==='team';
  const speak=()=>window.speechSynthesis?.speak(new SpeechSynthesisUtterance(q.prompt));
  function choose(i: number) {
    if (advancing) return;

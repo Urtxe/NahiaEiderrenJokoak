@@ -2,7 +2,21 @@ import type { DetectivePuzzle, Difficulty, Language, QuizQuestion, Stats } from 
 import { initialRoadProgress } from './roadLogic';
 
 export const random = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
-export const shuffle = <T,>(items: T[]): T[] => [...items].sort(() => Math.random() - .5);
+export function shuffle<T>(items: readonly T[]): T[] {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+  }
+  return shuffled;
+}
+export function pickExercises<T>(pool: readonly T[], count: number, recent: readonly string[], identify: (item: T) => string): T[] {
+  const positions = new Map(recent.map((id, index) => [id, index]));
+  const ordered = shuffle(pool).sort((first, second) =>
+    (positions.get(identify(first)) ?? -1) - (positions.get(identify(second)) ?? -1),
+  );
+  return shuffle(ordered.slice(0, count));
+}
 export const effectiveLevel = (difficulty: Difficulty, stats: Stats): 'seed' | 'star' => {
   if (difficulty !== 'auto') return difficulty;
   const recent = stats.recent.slice(-5);
@@ -24,9 +38,26 @@ const facts = [
   { eu: 'Zein animaliak egiten du miau?', es: '¿Qué animal hace miau?', choices: [['Katua', 'El gato'], ['Txakurra', 'El perro'], ['Ahatea', 'El pato'], ['Behia', 'La vaca']] },
   { eu: 'Zein animaliak du oskola?', es: '¿Qué animal tiene caparazón?', choices: [['Dortokak', 'La tortuga'], ['Txoriak', 'El pájaro'], ['Zaldiak', 'El caballo'], ['Tximeletak', 'La mariposa']] },
   { eu: 'Zerekin entzuten dugu?', es: '¿Con qué escuchamos?', choices: [['Belarriekin', 'Con los oídos'], ['Begiekin', 'Con los ojos'], ['Sudurrarekin', 'Con la nariz'], ['Eskuekin', 'Con las manos']] },
+  { eu: 'Zenbat alde ditu triangeluak?', es: '¿Cuántos lados tiene un triángulo?', choices: [['3', '3'], ['2', '2'], ['4', '4'], ['5', '5']] },
+  { eu: 'Zein da udaren ondorengo urtaroa?', es: '¿Qué estación viene después del verano?', choices: [['Udazkena', 'Otoño'], ['Udaberria', 'Primavera'], ['Negua', 'Invierno'], ['Uda', 'Verano']] },
+  { eu: 'Zerekin ikus dezakegu gure aurpegia?', es: '¿En qué podemos ver nuestra cara reflejada?', choices: [['Ispiluan', 'En un espejo'], ['Koadernoan', 'En un cuaderno'], ['Alfonbran', 'En una alfombra'], ['Burkoan', 'En una almohada']] },
+  { eu: 'Zein animaliak ditu sei hanka?', es: '¿Qué animal tiene seis patas?', choices: [['Inurriak', 'La hormiga'], ['Armiarmak', 'La araña'], ['Zaldiak', 'El caballo'], ['Sugeak', 'La serpiente']] },
+  { eu: 'Zein letra dator M letraren ondoren?', es: '¿Qué letra viene después de la M?', choices: [['N', 'N'], ['L', 'L'], ['K', 'K'], ['P', 'P']] },
+];
+const advancedFacts = [
   { eu: 'Zein animalia da ugaztuna?', es: '¿Qué animal es mamífero?', choices: [['Izurdea', 'El delfín'], ['Marrazoa', 'El tiburón'], ['Olagarroa', 'El pulpo'], ['Amuarraina', 'La trucha']] },
   { eu: 'Zer biltzen dute erleek loreetan eztia egiteko?', es: '¿Qué recogen las abejas de las flores para hacer miel?', choices: [['Nektarra', 'Néctar'], ['Harea', 'Arena'], ['Harriak', 'Piedras'], ['Hosto lehorrak', 'Hojas secas']] },
   { eu: 'Zein da planetetako bat?', es: '¿Cuál de estos es un planeta?', choices: [['Marte', 'Marte'], ['Ilargia', 'La Luna'], ['Eguzkia', 'El Sol'], ['Halley kometa', 'El cometa Halley']] },
+  { eu: 'Zenbat minutu daude ordu erdian?', es: '¿Cuántos minutos hay en media hora?', choices: [['30', '30'], ['15', '15'], ['45', '45'], ['60', '60']] },
+  { eu: 'Zein tresnak adierazten du non dagoen iparra?', es: '¿Qué instrumento indica dónde está el norte?', choices: [['Iparrorratzak', 'La brújula'], ['Termometroak', 'El termómetro'], ['Balantzak', 'La balanza'], ['Kronometroak', 'El cronómetro']] },
+  { eu: 'Zein animaliak du bizkarrezurra?', es: '¿Qué animal tiene columna vertebral?', choices: [['Sugeak', 'La serpiente'], ['Barraskiloak', 'El caracol'], ['Medusak', 'La medusa'], ['Tximeletak', 'La mariposa']] },
+  { eu: 'Zein gorputz geometrikok ditu sei aurpegi karratu berdin?', es: '¿Qué cuerpo geométrico tiene seis caras cuadradas iguales?', choices: [['Kuboak', 'El cubo'], ['Esferak', 'La esfera'], ['Konoak', 'El cono'], ['Zilindroak', 'El cilindro']] },
+  { eu: 'Zein indarrek erakartzen du sagarra lurrerantz erortzean?', es: '¿Qué fuerza atrae una manzana hacia el suelo cuando cae?', choices: [['Grabitateak', 'La gravedad'], ['Magnetismoak', 'El magnetismo'], ['Soinuak', 'El sonido'], ['Argiak', 'La luz']] },
+];
+
+const comparisonPrompts = [
+  { eu: 'Zein da txikiena?', es: '¿Cuál es el menor?' },
+  { eu: 'Zein da handiena?', es: '¿Cuál es el mayor?' },
 ];
 
 function numberQuestion(prompt: string, answer: number, hint?: string, visual?: string): QuizQuestion {
@@ -34,18 +65,30 @@ function numberQuestion(prompt: string, answer: number, hint?: string, visual?: 
   return { prompt, options: options.map(String), answer: index, hint, visual };
 }
 
-export function generateQuestion(level: 'seed' | 'star', lang: Language): QuizQuestion {
+function factQuestion(fact: typeof facts[number], lang: Language): QuizQuestion {
+  const [correct, ...wrong] = fact.choices.map(option => option[lang === 'eu' ? 0 : 1]);
+  return { prompt: fact[lang], ...answerChoices(correct, wrong) };
+}
+
+function factBank(level: 'seed' | 'star') {
+  return level === 'seed' ? facts : advancedFacts;
+}
+
+export function generateQuestion(level: 'seed' | 'star', lang: Language, n = Math.floor(Math.random() * (level === 'seed' ? 8 : 10))): QuizQuestion {
   const eu = lang === 'eu';
-  const n = Math.floor(Math.random() * (level === 'seed' ? 8 : 10));
   if (n < 4) {
     const max = level === 'seed' ? 10 : 50;
     const a = 1 + Math.floor(Math.random() * (max - 2));
     const b = 1 + Math.floor(Math.random() * Math.min(a, level === 'seed' ? 9 : 20));
-    if (level === 'star' && n === 3) {
+    if (n === 2) {
+      return numberQuestion(`${a} + ? = ${a + b}`, b, eu ? 'Zenbat falta dira guztizkora iristeko?' : '¿Cuántos faltan para llegar al total?');
+    }
+    if (n === 3) {
+      if (level === 'seed') return numberQuestion(eu ? `Zein da ${a} zenbakiaren bikoitza?` : `¿Cuál es el doble de ${a}?`, a * 2, eu ? 'Batu zenbakia bere buruarekin.' : 'Suma el número consigo mismo.');
       const x = 2 + Math.floor(Math.random() * 9), y = 2 + Math.floor(Math.random() * 9);
       return numberQuestion(`${x} × ${y} = ?`, x * y, eu ? 'Biderkatzea batuketaren laburpena da.' : 'Multiplicar es sumar varias veces.');
     }
-    const sum = n % 2 === 0;
+    const sum = n === 0;
     return numberQuestion(`${a} ${sum ? '+' : '−'} ${b} = ?`, sum ? a + b : a - b, eu ? 'Kontatu poliki-poliki.' : 'Cuenta despacito.');
   }
   if (n === 4) {
@@ -59,7 +102,7 @@ export function generateQuestion(level: 'seed' | 'star', lang: Language): QuizQu
     const greatest = Math.max(...values);
     const smallest = Math.random() < .5;
     const correct = smallest ? Math.min(...values) : greatest;
-    const prompt = smallest ? (eu ? 'Zein da txikiena?' : '¿Cuál es el menor?') : (eu ? 'Zein da handiena?' : '¿Cuál es el mayor?');
+    const prompt = comparisonPrompts[smallest ? 0 : 1][lang];
     const choices = answerChoices(correct, values);
     return { prompt, options: choices.options.map(String), answer: choices.answer };
   }
@@ -78,22 +121,29 @@ export function generateQuestion(level: 'seed' | 'star', lang: Language): QuizQu
     const series = [first, first + step, '❔', first + 3 * step, first + 4 * step];
     return numberQuestion(eu ? 'Zein zenbaki falta da?' : '¿Qué número falta?', first + 2 * step, undefined, series.join(' · '));
   }
-  const fact = random(level === 'seed' ? facts.slice(0, 3) : facts);
-  const [correct, ...wrong] = fact.choices.map(option => option[eu ? 0 : 1]);
-  return { prompt: fact[lang], ...answerChoices(correct, wrong) };
+  return factQuestion(random(factBank(level)), lang);
 }
 
-export function generateQuestions(level: 'seed' | 'star', lang: Language, count: number): QuizQuestion[] {
+export function quizQuestionId(question: QuizQuestion): string {
+  const compares = comparisonPrompts.some(prompt => prompt.eu === question.prompt || prompt.es === question.prompt);
+  return JSON.stringify([question.prompt, question.visual, compares ? [...question.options].sort() : undefined]);
+}
+
+export function generateQuestions(level: 'seed' | 'star', lang: Language, count: number, recent: readonly string[] = []): QuizQuestion[] {
+  const types = Array.from({ length: level === 'seed' ? 8 : 10 }, (_, index) => index);
   const questions: QuizQuestion[] = [];
-  const seen = new Set<string>();
-  for (let attempt = 0; questions.length < count && attempt < count * 6; attempt++) {
-    const question = generateQuestion(level, lang);
-    const key = JSON.stringify([question.prompt, question.visual]);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    questions.push(question);
+  const seen = [...recent];
+  while (questions.length < count) {
+    for (const type of shuffle(types).slice(0, count - questions.length)) {
+      // Sample procedural types instead of enumerating every possible board.
+      const candidates = type === 7 || type === 9
+        ? factBank(level).map(fact => factQuestion(fact, lang))
+        : Array.from({ length: 16 }, () => generateQuestion(level, lang, type));
+      const [question] = pickExercises(candidates, 1, seen, quizQuestionId);
+      seen.push(quizQuestionId(question));
+      questions.push(question);
+    }
   }
-  while (questions.length < count) questions.push(generateQuestion(level, lang));
   return questions;
 }
 
@@ -116,9 +166,14 @@ const keyLocations = [
   { icon: '🪴', eu: 'landarea', es: 'la planta' },
 ];
 
-export function generateDetectivePuzzle(level: 'seed' | 'star', lang: Language): DetectivePuzzle {
+const detectiveKinds: DetectivePuzzle['kind'][] = ['memory', 'difference', 'order', 'deduction'];
+
+export function generateDetectiveCase(level: 'seed' | 'star', lang: Language): DetectivePuzzle[] {
+  return shuffle([...detectiveKinds, random(detectiveKinds)]).map(kind => generateDetectivePuzzle(level, lang, kind));
+}
+
+export function generateDetectivePuzzle(level: 'seed' | 'star', lang: Language, kind = random(detectiveKinds)): DetectivePuzzle {
   const eu = lang === 'eu';
-  const kind = random<DetectivePuzzle['kind']>(['memory', 'difference', 'order', 'deduction']);
   if (kind === 'memory') {
     const display = shuffle(museumObjects).slice(0, level === 'seed' ? 4 : 6);
     const correct = random(display);

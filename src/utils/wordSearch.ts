@@ -7,15 +7,6 @@ type PuzzleWord = { letters: string[]; index: number };
 
 export const wordSearchCount = 6;
 
-export function shuffleSearchWords<T extends { text: string }>(pool: T[], previous?: readonly T[]): T[] {
-  const words = shuffle(pool);
-  if (previous && words.slice(0, wordSearchCount).every(word => previous.some(old => old.text === word.text))) {
-    const last = wordSearchCount - 1;
-    [words[last], words[wordSearchCount]] = [words[wordSearchCount], words[last]];
-  }
-  return words;
-}
-
 const emptyGrid = (size: number): Cell[][] => Array.from({ length: size }, () =>
   Array.from({ length: size }, () => ({ letter: '', word: -1 })),
 );
