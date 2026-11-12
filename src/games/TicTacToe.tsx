@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameResult, Language, ProfileId, SchoolLevel } from '../types';
 import { chooseTicCpuMove, initialTicBoard, ticWinner, type TicBoard, type TicCell } from '../utils/boardGames';
 import { useAnswerFeedback } from './AnswerFeedback';
+import { TeamMatchControls, type TeamScore } from './TeamMatchControls';
 import './board-games.css';
 
 export function TicTacToe({ lang, level, profile, onComplete }: { lang: Language; level: SchoolLevel; profile: ProfileId; onComplete: (result: GameResult) => void }) {
@@ -11,10 +12,12 @@ export function TicTacToe({ lang, level, profile, onComplete }: { lang: Language
   const [board, setBoard] = useState<TicBoard>(initialTicBoard);
   const [turn, setTurn] = useState<TicCell>('X');
   const [result, setResult] = useState<{ winner: TicCell; draw: boolean } | null>(null);
+  const [choosingStarter, setChoosingStarter] = useState(team);
+  const [score, setScore] = useState<TeamScore>({ nahia: 0, eider: 0, draws: 0 });
   const completed = useRef(false);
   const cpuTurn = !team && turn === 'O' && !result;
   function place(index: number, mark: TicCell) {
-    if (board[index] || result || advancing) return;
+    if (board[index] || result || advancing || choosingStarter) return;
     const next = [...board]; next[index] = mark;
     const won = ticWinner(next);
     const tied = !won && next.every(Boolean);
@@ -33,6 +36,10 @@ export function TicTacToe({ lang, level, profile, onComplete }: { lang: Language
   useEffect(() => {
     if (!result || completed.current || advancing) return;
     completed.current = true;
+    if (team) {
+      const key = result.draw ? 'draws' : result.winner === 'X' ? 'nahia' : 'eider';
+      setScore(current => ({ ...current, [key]: current[key] + 1 }));
+    }
     const userMark = 'X';
     const userWon = result.winner === userMark;
     const winningName = team ? (result.winner === 'X' ? 'Nahia' : 'Eider') : (profile === 'eider' ? 'Eider' : 'Nahia');
@@ -47,7 +54,15 @@ export function TicTacToe({ lang, level, profile, onComplete }: { lang: Language
     onComplete({ game: 'ticTacToe', score: won ? 1 : 0, correct: won ? 1 : 0, total: 1, stars: won ? 2 : 1, teamWin: team && !!result.winner, summary });
   }, [advancing, eu, onComplete, profile, result, team]);
 
-  const status = result
+  function replay() {
+    setBoard(initialTicBoard());
+    setTurn('X');
+    setResult(null);
+    setChoosingStarter(team);
+    completed.current = false;
+  }
+
+  const status = choosingStarter ? (eu ? 'Aukeratu nor hasiko den' : 'Elegid quién empieza') : result
     ? result.draw ? (eu ? 'Berdinketa!' : '¡Empate!') : team
       ? (eu ? `${result.winner === 'X' ? 'Nahia' : 'Eider'}k irabazi du!` : `¡Ha ganado ${result.winner === 'X' ? 'Nahia' : 'Eider'}!`)
       : result.winner === 'X' ? (eu ? 'Irabazi duzu!' : '¡Has ganado!') : (eu ? 'Ordenagailuak irabazi du.' : 'Ha ganado el ordenador.')
@@ -58,12 +73,13 @@ export function TicTacToe({ lang, level, profile, onComplete }: { lang: Language
   return <section className="game-shell board-game tic-game">
     <div className="game-top"><div><span className="eyebrow">⭕ {eu ? 'HIRU ILARAN' : 'TRES EN RAYA'}</span><h2>{eu ? 'Lerrokatu hiru!' : '¡Alinea tres!'}</h2></div><span className="counter">{status}</span></div>
     <p className="board-game-help">{team ? (eu ? 'Nahiak X erabiltzen du eta Eiderrek O. Txandaka jarri ikurrak hiru lerrokatzeko.' : 'Nahia juega con X y Eider con O. Poned los símbolos por turnos para alinear tres.') : (eu ? 'Zu X zara. Jarri hiru ikur lerroan ordenagailua baino lehen.' : 'Tú juegas con X. Coloca tres símbolos en línea antes que el ordenador.')}</p>
+    {team && <TeamMatchControls lang={lang} score={score} choosingStarter={choosingStarter} disabled={advancing} onStart={side => { setTurn(side === 'nahia' ? 'X' : 'O'); setChoosingStarter(false); }} />}
     <div className="tic-board" role="group" aria-label={eu ? 'Hiru ilaran taula' : 'Tablero de tres en raya'}>
-      {board.map((cell, index) => <button key={index} className={`tic-cell ${cell ? `mark-${cell.toLowerCase()}` : ''}`} onClick={() => place(index, turn)} disabled={!!result || cpuTurn || advancing || !!cell} aria-label={`${eu ? 'Gelaxka' : 'Casilla'} ${index + 1}${cell ? `, ${cell}` : eu ? ', hutsik' : ', vacía'}`}>
+      {board.map((cell, index) => <button key={index} className={`tic-cell ${cell ? `mark-${cell.toLowerCase()}` : ''}`} onClick={() => place(index, turn)} disabled={choosingStarter || !!result || cpuTurn || advancing || !!cell} aria-label={`${eu ? 'Gelaxka' : 'Casilla'} ${index + 1}${cell ? `, ${cell}` : eu ? ', hutsik' : ', vacía'}`}>
         {cell === 'X' ? '×' : cell === 'O' ? '○' : ''}
       </button>)}
     </div>
     <div className="board-game-legend"><span><b className="tic-x">×</b> {team ? 'Nahia' : (eu ? 'Zu' : 'Tú')}</span><span><b className="tic-o">○</b> {team ? 'Eider' : (eu ? 'Ordenagailua' : 'Ordenador')}</span></div>
-    {result && <div className="board-game-result" role="status"><strong>{status}</strong></div>}
+    {result && <div className="board-game-result" role="status"><strong>{status}</strong>{team && <button className="primary" onClick={replay} disabled={advancing}>{eu ? 'Berriro jolastu' : 'Volver a jugar'}</button>}</div>}
   </section>;
 }

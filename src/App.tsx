@@ -50,7 +50,7 @@ export default function App(){
  const SchoolGame = schoolGames[game];
  const uppercase = (view !== 'welcome' && profile === 'eider') || (view === 'game' && schoolLevel === 'lh1' && !!SchoolGame);
  const beep=(good=true)=>{if(!sound)return;try{const ctx=new AudioContext();const o=ctx.createOscillator();const g=ctx.createGain();o.frequency.value=good?660:330;g.gain.setValueAtTime(.06,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.13);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+.14);}catch{/* sound is optional */}};
- const complete=(r:GameResult)=>{beep(true);saveResult(profile,r);if(r.game!=='road')setResult(r);};
+ const complete=(r:GameResult)=>{beep(true);saveResult(profile,r);if(r.game!=='road'&&!(profile==='team'&&(r.game==='ticTacToe'||r.game==='checkers')))setResult(r);};
  const goWelcome=()=>{setModal(null);setResult(null);setProfile('nahia');setView('welcome');};
  const leave=()=>{setLeaveDestination('menu');setModal('leave');};
  const goHome=()=>{if(view==='game'){setLeaveDestination('welcome');setModal('leave');}else goWelcome();};
