@@ -104,13 +104,13 @@ const gooseSpiral = (() => {
   const result: { row: number; col: number }[] = [];
   let top = 0, left = 0, bottom = 8, right = 8;
   while (top <= bottom && left <= right) {
-    for (let col = left; col <= right; col++) result.push({ row: top, col });
-    top++;
-    for (let row = top; row <= bottom; row++) result.push({ row, col: right });
-    right--;
-    for (let col = right; col >= left; col--) result.push({ row: bottom, col });
+    for (let col = left; col <= right; col++) result.push({ row: bottom, col });
     bottom--;
-    for (let row = bottom; row >= top; row--) result.push({ row, col: left });
+    for (let row = bottom; row >= top; row--) result.push({ row, col: right });
+    right--;
+    for (let col = right; col >= left; col--) result.push({ row: top, col });
+    top++;
+    for (let row = top; row <= bottom; row++) result.push({ row, col: left });
     left++;
   }
   return result.slice(0, 63);
@@ -147,48 +147,48 @@ const movableParchisPieces = (state: ParchisState, player: Player, roll: number)
 };
 
 type PropertyGroup = 'meadow'|'shore'|'orchard'|'harbor'|'garden'|'market'|'skyline'|'crown';
-type PropertyTile = { name: string; type: 'start'|'property'|'community'|'tax'|'rail'|'chance'|'jail'|'parking'|'gotoJail'|'utility'; icon: string; price?: number; rent?: number; group?: PropertyGroup; tax?: number };
+type PropertyTile = { name: string; euName: string; type: 'start'|'property'|'community'|'tax'|'rail'|'chance'|'jail'|'parking'|'gotoJail'|'utility'; icon: string; price?: number; rent?: number; group?: PropertyGroup; tax?: number };
 const propertyTiles: PropertyTile[] = [
-  { name: 'Salida', type: 'start', icon: '🚩' },
-  { name: 'Calle Olmo', type: 'property', icon: '🌳', price: 60, rent: 2, group: 'meadow' },
-  { name: 'Caja común', type: 'community', icon: '🎁' },
-  { name: 'Calle Haya', type: 'property', icon: '🌿', price: 60, rent: 4, group: 'meadow' },
-  { name: 'Impuesto municipal', type: 'tax', icon: '🧾', tax: 200 },
-  { name: 'Estación Central', type: 'rail', icon: '🚉', price: 200 },
-  { name: 'Paseo del Prado', type: 'property', icon: '🌼', price: 100, rent: 6, group: 'shore' },
-  { name: 'Suerte', type: 'chance', icon: '✨' },
-  { name: 'Plaza del Lago', type: 'property', icon: '⛲', price: 100, rent: 6, group: 'shore' },
-  { name: 'Calle Nube', type: 'property', icon: '☁️', price: 120, rent: 8, group: 'shore' },
-  { name: 'Visita / descanso', type: 'jail', icon: '🛟' },
-  { name: 'Calle Luna', type: 'property', icon: '🌙', price: 140, rent: 10, group: 'orchard' },
-  { name: 'Compañía eléctrica', type: 'utility', icon: '⚡', price: 150 },
-  { name: 'Paseo Verde', type: 'property', icon: '🍀', price: 140, rent: 10, group: 'orchard' },
-  { name: 'Plaza Mayor', type: 'property', icon: '🏛️', price: 160, rent: 12, group: 'orchard' },
-  { name: 'Estación del Oeste', type: 'rail', icon: '🚉', price: 200 },
-  { name: 'Jardín de Luz', type: 'property', icon: '🌷', price: 180, rent: 14, group: 'harbor' },
-  { name: 'Caja común', type: 'community', icon: '🎁' },
-  { name: 'Paseo de las Flores', type: 'property', icon: '🌺', price: 180, rent: 14, group: 'harbor' },
-  { name: 'Avenida Estrella', type: 'property', icon: '⭐', price: 200, rent: 16, group: 'harbor' },
-  { name: 'Aparcamiento libre', type: 'parking', icon: '🅿️' },
-  { name: 'Calle Rocío', type: 'property', icon: '🌧️', price: 220, rent: 18, group: 'garden' },
-  { name: 'Suerte', type: 'chance', icon: '✨' },
-  { name: 'Plaza del Bosque', type: 'property', icon: '🌲', price: 220, rent: 18, group: 'garden' },
-  { name: 'Calle Arcoíris', type: 'property', icon: '🌈', price: 240, rent: 20, group: 'garden' },
-  { name: 'Estación del Río', type: 'rail', icon: '🚉', price: 200 },
-  { name: 'Puente del Río', type: 'property', icon: '🌉', price: 260, rent: 22, group: 'market' },
-  { name: 'Avenida Horizonte', type: 'property', icon: '🌅', price: 260, rent: 22, group: 'market' },
-  { name: 'Compañía de agua', type: 'utility', icon: '💧', price: 150 },
-  { name: 'Parque Alto', type: 'property', icon: '🌳', price: 280, rent: 24, group: 'market' },
-  { name: 'Ve a la pausa', type: 'gotoJail', icon: '🚨' },
-  { name: 'Calle Brisa', type: 'property', icon: '🍃', price: 300, rent: 26, group: 'skyline' },
-  { name: 'Calle del Mar', type: 'property', icon: '🌊', price: 300, rent: 26, group: 'skyline' },
-  { name: 'Caja común', type: 'community', icon: '🎁' },
-  { name: 'Avenida del Sol', type: 'property', icon: '☀️', price: 320, rent: 28, group: 'skyline' },
-  { name: 'Estación del Faro', type: 'rail', icon: '🚉', price: 200 },
-  { name: 'Suerte', type: 'chance', icon: '✨' },
-  { name: 'Plaza Aurora', type: 'property', icon: '🌌', price: 350, rent: 35, group: 'crown' },
-  { name: 'Tasa de servicios', type: 'tax', icon: '🧾', tax: 100 },
-  { name: 'Gran Avenida', type: 'property', icon: '🏙️', price: 400, rent: 50, group: 'crown' },
+  { name: 'Salida', euName: 'Irteera', type: 'start', icon: '🚩' },
+  { name: 'Bosque de los robles', euName: 'Haritzen basoa', type: 'property', icon: '🌳', price: 60, rent: 2, group: 'meadow' },
+  { name: 'Regalo del vecindario', euName: 'Auzokoen oparia', type: 'community', icon: '🎁' },
+  { name: 'Jardín de helechos', euName: 'Iratzeen lorategia', type: 'property', icon: '🌿', price: 60, rent: 4, group: 'meadow' },
+  { name: 'Ayuda al refugio animal', euName: 'Animalien aterperako laguntza', type: 'tax', icon: '🧾', tax: 200 },
+  { name: 'Tren de los animales', euName: 'Animalien trena', type: 'rail', icon: '🚉', price: 200 },
+  { name: 'Jardín de las mariposas', euName: 'Tximeleten lorategia', type: 'property', icon: '🦋', price: 100, rent: 6, group: 'shore' },
+  { name: 'Carta de la suerte', euName: 'Zorte-txartela', type: 'chance', icon: '✨' },
+  { name: 'Laguna de las ranas', euName: 'Igelen aintzira', type: 'property', icon: '🐸', price: 100, rent: 6, group: 'shore' },
+  { name: 'Prado arcoíris', euName: 'Ortzadar-belardia', type: 'property', icon: '🌈', price: 120, rent: 8, group: 'shore' },
+  { name: 'Rincón de descanso', euName: 'Atseden-txokoa', type: 'jail', icon: '🛟' },
+  { name: 'Noche de los búhos', euName: 'Hontzen gaua', type: 'property', icon: '🦉', price: 140, rent: 10, group: 'orchard' },
+  { name: 'Energía del sol', euName: 'Eguzki-energia', type: 'utility', icon: '⚡', price: 150 },
+  { name: 'Claro de los zorros', euName: 'Azerien soilgunea', type: 'property', icon: '🦊', price: 140, rent: 10, group: 'orchard' },
+  { name: 'Colina de las setas', euName: 'Perretxikoen muinoa', type: 'property', icon: '🍄', price: 160, rent: 12, group: 'orchard' },
+  { name: 'Tren del bosque', euName: 'Basoko trena', type: 'rail', icon: '🚂', price: 200 },
+  { name: 'Campo de flores', euName: 'Loreen zelaia', type: 'property', icon: '🌷', price: 180, rent: 14, group: 'harbor' },
+  { name: 'Regalo del vecindario', euName: 'Auzokoen oparia', type: 'community', icon: '🎁' },
+  { name: 'Jardín de las abejas', euName: 'Erleen lorategia', type: 'property', icon: '🐝', price: 180, rent: 14, group: 'harbor' },
+  { name: 'Cielo estrellado', euName: 'Izarrez betetako zerua', type: 'property', icon: '⭐', price: 200, rent: 16, group: 'harbor' },
+  { name: 'Parada del bosque', euName: 'Basoko atsedenlekua', type: 'parking', icon: '🅿️' },
+  { name: 'Lago de los patos', euName: 'Ahateen aintzira', type: 'property', icon: '🦆', price: 220, rent: 18, group: 'garden' },
+  { name: 'Carta de la suerte', euName: 'Zorte-txartela', type: 'chance', icon: '✨' },
+  { name: 'Robledal del viento', euName: 'Haizearen hariztia', type: 'property', icon: '🌲', price: 220, rent: 18, group: 'garden' },
+  { name: 'Taller de dibujos', euName: 'Marrazkien tailerra', type: 'property', icon: '🎨', price: 240, rent: 20, group: 'garden' },
+  { name: 'Tren de la ribera', euName: 'Ibaiertzeko trena', type: 'rail', icon: '🚂', price: 200 },
+  { name: 'Río brillante', euName: 'Ibai distiratsua', type: 'property', icon: '🌊', price: 260, rent: 22, group: 'market' },
+  { name: 'Prado de los ciervos', euName: 'Oreinaren belardia', type: 'property', icon: '🦌', price: 260, rent: 22, group: 'market' },
+  { name: 'Fuente de agua', euName: 'Ur-iturria', type: 'utility', icon: '💧', price: 150 },
+  { name: 'Refugio de las ardillas', euName: 'Urtxintxen aterpea', type: 'property', icon: '🐿️', price: 280, rent: 24, group: 'market' },
+  { name: 'Ve al rincón tranquilo', euName: 'Zoaz atseden-txokora', type: 'gotoJail', icon: '🚨' },
+  { name: 'Sendero de las hojas', euName: 'Hostoen bidezidorra', type: 'property', icon: '🍃', price: 300, rent: 26, group: 'skyline' },
+  { name: 'Bahía de las tortugas', euName: 'Dortoken badia', type: 'property', icon: '🐢', price: 300, rent: 26, group: 'skyline' },
+  { name: 'Regalo del vecindario', euName: 'Auzokoen oparia', type: 'community', icon: '🎁' },
+  { name: 'Huerto de las mariposas', euName: 'Tximeleten baratzea', type: 'property', icon: '🦋', price: 320, rent: 28, group: 'skyline' },
+  { name: 'Tren del faro', euName: 'Itsasargiko trena', type: 'rail', icon: '🚂', price: 200 },
+  { name: 'Carta de la suerte', euName: 'Zorte-txartela', type: 'chance', icon: '✨' },
+  { name: 'Jardín de las estrellas', euName: 'Izarren lorategia', type: 'property', icon: '🌌', price: 350, rent: 35, group: 'crown' },
+  { name: 'Ayuda para cuidar la naturaleza', euName: 'Natura zaintzeko laguntza', type: 'tax', icon: '🧾', tax: 100 },
+  { name: 'Bosque de los sueños', euName: 'Ametsen basoa', type: 'property', icon: '🦄', price: 400, rent: 50, group: 'crown' },
 ];
 const groupColors: Record<PropertyGroup, string> = { meadow:'#8c5a43', shore:'#a8d9fa', orchard:'#d991d1', harbor:'#f09178', garden:'#f5cd67', market:'#ee9a55', skyline:'#81c8a6', crown:'#a2a6b2' };
 const groupHouses: Record<PropertyGroup, number> = { meadow:50, shore:50, orchard:100, harbor:100, garden:150, market:150, skyline:200, crown:200 };
@@ -243,6 +243,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   const root = useRef<HTMLElement>(null);
   const rollTimer = useRef<number | null>(null);
   const label = (euText: string, esText: string) => eu ? euText : esText;
+  const tileName = (tile: PropertyTile) => eu ? tile.euName : tile.name;
   const [game, setGame] = useState<Game>('goose');
   const [extraNames, setExtraNames] = useState({ guest1:'',guest2:'' });
   const [starter, setStarter] = useState<Player | null>(null);
@@ -290,6 +291,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   const currentGame = games.find(item => item.id === game)!;
   const diceTotal = game === 'monopoly' ? dice.reduce((sum,value) => sum+value,0) : dice[0] ?? 1;
   const gooseIndex = new Map(gooseSpiral.map((coord, index) => [`${coord.row},${coord.col}`, index]));
+  const goosePosition = (player: Player) => Math.max(0, goose.positions[player]);
   const parchisMovable = useMemo(() => game === 'parchis' && parchisRoll !== null ? movableParchisPieces(parchis,turn,parchisRoll) : [], [game,parchis.pieces,parchisRoll,turn]);
 
   function resetGame(next: Game) {
@@ -450,7 +452,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
 
   function landOnMonopoly(index: number, roll: number, passedStart: boolean, doubles: boolean, base: MonopolyState = monopoly) {
     let state = { ...base, positions:{ ...base.positions }, cash:{ ...base.cash }, jailed:{ ...base.jailed }, jailAttempts:{ ...base.jailAttempts }, doubles:{ ...base.doubles } };
-    let note = `${playerName(turn)} ${label('hemen dago:', 'ha llegado a:')} ${propertyTiles[index].name}.`;
+    let note = `${playerName(turn)} ${label('hemen dago:', 'ha llegado a:')} ${tileName(propertyTiles[index])}.`;
     if (passedStart) { state.cash[turn] += 200; note += label(' +200 txanpon irteeratik.', ' +200 al pasar por salida.'); }
     setMonopolyLastTile(index);
     const tile = propertyTiles[index];
@@ -505,7 +507,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     if (monopolyOffer === null) return;
     const tile = propertyTiles[monopolyOffer], price = tile.price ?? 0, next = { ...monopoly, owners:[...monopoly.owners], cash:{...monopoly.cash} };
     if (next.cash[turn] < price) { setMessage(label('Ez duzu nahikoa diru.', 'No tienes dinero suficiente.')); return; }
-    next.owners[monopolyOffer] = turn; next.cash[turn] -= price; setMonopoly(next); setMonopolyEnding(true); setMessage(`${playerName(turn)} ${label('jabe egin da:', 'ha comprado')} ${tile.name}.`); setMonopolyOffer(null);
+    next.owners[monopolyOffer] = turn; next.cash[turn] -= price; setMonopoly(next); setMonopolyEnding(true); setMessage(`${playerName(turn)} ${label('jabe egin da:', 'ha comprado')} ${tileName(tile)}.`); setMonopolyOffer(null);
   }
 
   function passMonopolyProperty() {
@@ -529,7 +531,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     if (everyoneElsePassed && bidder) {
       const next = { ...monopoly,owners:[...monopoly.owners],cash:{...monopoly.cash} };
       next.owners[auction.tile] = bidder; next.cash[bidder] -= auction.bid;
-      setMonopoly(next); setAuctionResolved(true); setMonopolyEnding(true); setMessage(`${playerName(bidder)} ${label('enkantea irabazi du:', 'gana la subasta de')} ${propertyTiles[auction.tile].name}.`); setAuction(null); return;
+      setMonopoly(next); setAuctionResolved(true); setMonopolyEnding(true); setMessage(`${playerName(bidder)} ${label('enkantea irabazi du:', 'gana la subasta de')} ${tileName(propertyTiles[auction.tile])}.`); setAuction(null); return;
     }
     if (everyonePassed) { setAuction(null); setAuctionResolved(true); setMonopolyEnding(true); setMessage(label('Ez da eskaintzarik egin.', 'No hubo pujas por esta propiedad.')); return; }
     setAuction({ ...auction,next:nextPlayer(auction.next),passes:passesAfter }); setMessage(`${playerName(nextPlayer(auction.next))}: ${label('eskaintza egin edo pasatu.','puja o pasa.')}`);
@@ -545,7 +547,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     if (houseCount > min || monopoly.cash[turn] < price) return;
     const next = { ...monopoly,cash:{...monopoly.cash},houses:[...monopoly.houses] };
     next.cash[turn] -= price; next.houses[index] += 1; setMonopoly(next); setMonopolyEnding(true);
-    setMessage(`${label('Eraikin bat jarri duzu:','Has construido en')} ${tile.name}.`);
+    setMessage(`${label('Eraikin bat jarri duzu:','Has construido en')} ${tileName(tile)}.`);
   }
 
   function rollDice() {
@@ -584,19 +586,20 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
 
   const gooseCells = Array.from({ length:81 }, (_, i) => {
     const row = Math.floor(i/9), col = i%9, index = gooseIndex.get(`${row},${col}`);
-    if (index === undefined) return <div className="tt-goose-empty" key={i} />;
+    const position = { gridRow:row+1,gridColumn:col+1 };
+    if (index === undefined) return <div className="tt-goose-empty" key={i} style={position} />;
     const special = index === 5 || index === 11 ? 'bridge' : index === 18 ? 'inn' : index === 30 ? 'well' : index === 41 ? 'maze' : index === 51 ? 'prison' : index === 57 ? 'death' : index === 62 ? 'finish' : gooseSquares.has(index) ? 'goose' : '';
-    return <div className={`tt-goose-cell tone-${Math.floor(index/16)%4} ${special} ${activePlayers.some(player=>goose.positions[player]===index)?'occupied':''}`} key={i}>
+    return <div className={`tt-goose-cell tone-${Math.floor(index/16)%4} ${special} ${activePlayers.some(player=>goosePosition(player)===index)?'occupied':''}`} key={i} style={position}>
       <small>{index+1}</small><span>{special === 'goose' ? '🪿' : special === 'bridge' ? '🌉' : special === 'inn' ? '🏨' : special === 'well' ? '🪣' : special === 'maze' ? '🌀' : special === 'prison' ? '🔒' : special === 'death' ? '💀' : special === 'finish' ? '🏁' : ''}</span>
-      <div className="tt-goose-token">{activePlayers.filter(player => goose.positions[player] === index).map(player => <b className={`tt-pawn ${player}`} key={player}>{pawnIcon(player)}</b>)}</div>
+      <div className="tt-goose-token">{activePlayers.filter(player => goosePosition(player) === index).map(player => <b className={`tt-pawn ${player} ${starter && turn===player?'current':''}`} key={player}>{pawnIcon(player)}</b>)}</div>
     </div>;
   });
 
   const parchisTokensAt = (absolute: number) => activePlayers.flatMap(player => parchis.pieces[player].map((position,index) => ({player,index,position})).filter(token => token.position >= 0 && token.position < 63 && (parchisStarts[player]+token.position)%68 === absolute));
 
   const propertyCenter = <div className="tt-property-center" style={{ gridRow:'2 / 11',gridColumn:'2 / 11' }}>
-    <span>✦ CITY LIFE ✦</span><strong>AURORA<br/>DISTRICT</strong>
-    <div className="tt-center-pawns">{activePlayers.map(player => <b className={`tt-pawn ${player}`} key={player}>{pawnIcon(player)} {playerName(player)}</b>)}</div>
+    <span>✦ {label('NATURAREN MUNDUA','MUNDO NATURAL')} ✦</span><strong>{label('AURORA AUZOA','BARRIO AURORA')}</strong>
+    <div className="tt-center-pawns">{activePlayers.map(player => <b className={`tt-pawn ${player} ${starter && turn===player?'current':''}`} key={player}>{pawnIcon(player)} {playerName(player)}</b>)}</div>
   </div>;
 
   const propertyDeedIndex = monopolyOffer ?? monopolyLastTile;
@@ -616,13 +619,13 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     <div className={`tt-score ${activePlayers.length > 2 ? 'multi' : ''}`} aria-live="polite">{activePlayers.map(player=><span className={player} key={player}>{pawnIcon(player)} {playerName(player)} <b>{wins[player]}</b></span>)}<span className="draws">{label('Berdinketak','Empates')} <b>{wins.draws}</b></span></div>
     <section className="tt-play-layout">
       <div className="tt-playfield">
-        {game === 'goose' && <div className="tt-goose-board"><div className="tt-goose-grid">{gooseCells}<div className="tt-goose-center" style={{gridRow:'4 / 7',gridColumn:'4 / 7'}}><span>✦ AURORA ✦</span><b className="tt-goose-hero" aria-hidden="true">🪿</b><strong>GOOSE<br/>TRAIL</strong><small>63 • {label('laukiko bidaia','casillas de aventura')}</small></div></div></div>}
+        {game === 'goose' && <div className="tt-goose-board"><div className="tt-goose-grid">{gooseCells}<div className="tt-goose-center" style={{gridRow:'4 / 7',gridColumn:'4 / 7'}}><span>✦ AURORA ✦</span><b className="tt-goose-hero" aria-hidden="true">🪿</b><strong>{label('ANTZARA-BIDEA','CAMINO DE LA OCA')}</strong><small>63 • {label('laukiko bidaia','casillas de aventura')}</small></div></div></div>}
         {game === 'parchis' && <div className="tt-parchis-board">
           <div className="tt-parchis-grid" role="group" aria-label={label('Parxisaren taula','Tablero de parchís')}>
             {parchisRoute.map((coord,index) => {
               const tokens = parchisTokensAt(index), safe = parchisSafe.has(index), startPlayer = Object.keys(parchisStarts).find(player => parchisStarts[player as Player] === index) as Player | undefined;
               return <div key={index} className={`tt-parchis-cell ${safe ? 'safe' : ''} ${startPlayer ?? ''}`} style={{gridRow:coord.row+1,gridColumn:coord.col+1} as CSSProperties}>
-                {startPlayer && <small>START</small>}
+                {startPlayer && <small>{label('HASI','SALIDA')}</small>}
                 {tokens.map(token => <button type="button" className={`tt-parchis-token ${token.player} ${turn===token.player&&parchisMovable.includes(token.index) ? 'selectable' : ''}`} key={`${token.player}-${token.index}`} onClick={() => moveParchisPiece(token.index)} disabled={turn!==token.player||!parchisMovable.includes(token.index)} aria-label={`${playerName(token.player)}, ${label('fitxa','ficha')} ${token.index+1}`}>{pawnIcon(token.player)}</button>)}
                 {safe && tokens.length === 0 && <span className="tt-safe-mark">✦</span>}
               </div>;
@@ -641,9 +644,9 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
         {game === 'monopoly' && <div className="tt-property-board">
           {propertyCenter}
           {propertyTiles.map((tile,index) => { const coord = boardCoordinate(index); return <div key={index} data-kind={tile.type==='rail'?'railroad':tile.type} data-group={tile.group ?? ''} className={monopolyTileClass(tile,index)} style={{gridRow:coord.row,gridColumn:coord.col,'--property-color':tile.group ? groupColors[tile.group] : undefined} as CSSProperties}>
-            <small className="tt-property-icon">{tile.icon}</small><strong>{tile.name}</strong>{tile.price && <small className="tt-price">{tile.price} €</small>}
+            <small className="tt-property-icon">{tile.icon}</small><strong>{tileName(tile)}</strong>{tile.price && <small className="tt-price">{tile.price} €</small>}
             {monopoly.houses[index] > 0 && <small className="tt-houses">{'🏠'.repeat(Math.min(4,monopoly.houses[index]))}{monopoly.houses[index] === 5 ? '🏨' : ''}</small>}
-            <div className="tt-pawns">{activePlayers.filter(player => monopoly.positions[player] === index).map(player => <span className={`tt-pawn ${player}`} key={player}>{pawnIcon(player)}</span>)}</div>
+            <div className="tt-pawns">{activePlayers.filter(player => monopoly.positions[player] === index).map(player => <span className={`tt-pawn ${player} ${starter && turn===player?'current':''}`} key={player}>{pawnIcon(player)}</span>)}</div>
           </div>; })}
         </div>}
       </div>
@@ -655,11 +658,11 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
         {!starter && (game === 'goose' || game === 'parchis' || game === 'monopoly') && <fieldset className="tt-extra-players"><legend>{label('Gehitu gehienez 2 jokalari','Añade hasta 2 personas más')}</legend>{(['guest1','guest2'] as const).map((player,index)=><label key={player}>{label(`Jokalaria ${index+3}`,`Persona ${index+3}`)}<input type="text" maxLength={16} value={extraNames[player]} placeholder={label('Idatzi izena','Escribe un nombre')} onChange={event=>setExtraNames(current=>({...current,[player]:event.target.value}))}/></label>)}</fieldset>}
         {!starter && <fieldset className="tt-starter"><legend>{label('Nork hasiko da?','¿Quién empieza?')}</legend>{activePlayers.map(player => <button type="button" key={player} className={player} onClick={() => start(player)}>{pawnIcon(player)} {playerName(player)}</button>)}</fieldset>}
         {game === 'monopoly' && <div className={`tt-cash ${activePlayers.length>2?'multi':''}`}>{activePlayers.map(player=><span className={player} key={player}>{pawnIcon(player)} {playerName(player)} <b>{monopoly.cash[player]} €</b>{monopoly.jailed[player]&&<small>{label('Pausan','En pausa')}</small>}</span>)}</div>}
-        {game === 'monopoly' && deedTile && propertyDeedIndex !== null && <div className={`tt-deed ${deedTile.group ?? deedTile.type}`}><div className="tt-deed-band" style={{background:deedTile.group ? groupColors[deedTile.group] : 'transparent'}}><span>{deedTile.icon}</span></div><small>{label('JABETZA TXARTELA','TARJETA DE PROPIEDAD')}</small><h3>{deedTile.name}</h3><div className="tt-deed-details">{deedTile.price ? <span>{label('Prezioa','Precio')} <b>{deedTile.price} €</b></span> : null}{deedTile.rent ? <span>{label('Oinarrizko alokairua','Alquiler base')} <b>{propertyRent(propertyDeedIndex,monopoly,7)} €</b></span> : null}{deedTile.group && monopoly.owners[propertyDeedIndex] === turn && <span>{label('Etxeak','Casas')} <b>{monopoly.houses[propertyDeedIndex]} / 5</b></span>}</div>
+        {game === 'monopoly' && deedTile && propertyDeedIndex !== null && <div className={`tt-deed ${deedTile.group ?? deedTile.type}`}><div className="tt-deed-band" style={{background:deedTile.group ? groupColors[deedTile.group] : 'transparent'}}><span>{deedTile.icon}</span></div><small>{label('JABETZA TXARTELA','TARJETA DE PROPIEDAD')}</small><h3>{tileName(deedTile)}</h3><div className="tt-deed-details">{deedTile.price ? <span>{label('Prezioa','Precio')} <b>{deedTile.price} €</b></span> : null}{deedTile.rent ? <span>{label('Oinarrizko alokairua','Alquiler base')} <b>{propertyRent(propertyDeedIndex,monopoly,7)} €</b></span> : null}{deedTile.group && monopoly.owners[propertyDeedIndex] === turn && <span>{label('Etxeak','Casas')} <b>{monopoly.houses[propertyDeedIndex]} / 5</b></span>}</div>
           {monopolyOffer === propertyDeedIndex && <div className="tt-deed-actions"><button className="tt-action primary" onClick={buyMonopolyProperty}>{label('EROSI','COMPRAR')} · {deedTile.price} €</button><button className="tt-action secondary" onClick={passMonopolyProperty}>{label('ENKANTERA ATERA','SUBASTAR')}</button></div>}
           {canBuildHouse && <button className="tt-action secondary" onClick={() => buildHouse(propertyDeedIndex)}>{label('ETXEA ERAIKI','CONSTRUIR CASA')} · {houseCost} €</button>}
         </div>}
-        {game === 'monopoly' && auction && <div className="tt-auction"><small>{label('ENKANTEA','SUBASTA')}</small><h3>{propertyTiles[auction.tile].name}</h3><p>{auction.bidder ? `${playerName(auction.bidder)} · ${auction.bid} €` : label('Oraindik eskaintzarik ez.','Sin pujas todavía.')}</p><strong>{label('Eskaintza','Turno de')}: {playerName(auction.next)}</strong><div><button className="tt-action primary" onClick={bidMonopoly}>{label('ESKAINI','PUJAR')} · {auction.bid+10} €</button><button className="tt-action secondary" onClick={passAuction}>{label('PASATU','PASAR')}</button></div></div>}
+        {game === 'monopoly' && auction && <div className="tt-auction"><small>{label('ENKANTEA','SUBASTA')}</small><h3>{tileName(propertyTiles[auction.tile])}</h3><p>{auction.bidder ? `${playerName(auction.bidder)} · ${auction.bid} €` : label('Oraindik eskaintzarik ez.','Sin pujas todavía.')}</p><strong>{label('Eskaintza','Turno de')}: {playerName(auction.next)}</strong><div><button className="tt-action primary" onClick={bidMonopoly}>{label('ESKAINI','PUJAR')} · {auction.bid+10} €</button><button className="tt-action secondary" onClick={passAuction}>{label('PASATU','PASAR')}</button></div></div>}
         {game === 'monopoly' && monopoly.jailed[turn] && starter && <button className="tt-action secondary" onClick={() => { const next={...monopoly,cash:{...monopoly.cash},jailed:{...monopoly.jailed},jailAttempts:{...monopoly.jailAttempts}}; if(next.cash[turn]>=50){next.cash[turn]-=50;next.jailed[turn]=false;next.jailAttempts[turn]=0;setMonopoly(next);setMessage('');setMonopolyEnding(false);setAuctionResolved(false);} }}>{label('50 ORDAINDU ETA JOLASTU','PAGAR 50 Y SEGUIR')}</button>}
         {finished && <div className="tt-finished"><strong>{message}</strong><button type="button" className="tt-action primary" onClick={() => resetGame(game)}>{label('BERRIRO JOLASTU','JUGAR OTRA VEZ')}</button></div>}
       </aside>

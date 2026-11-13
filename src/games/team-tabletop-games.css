@@ -235,14 +235,16 @@
   font-weight: 850;
   transition: transform .18s, border-color .18s, box-shadow .18s;
 }
-.tt-goose-cell small,.tt-goose-cell .tt-space-number { position: absolute; top: 4px; left: 5px; color: #c4d1ed; font-size: clamp(.42rem,.78vw,.67rem); line-height: 1; }
+.tt-goose-cell small,.tt-goose-cell .tt-space-number { position: absolute; z-index: 2; top: 4px; left: 5px; color: #c4d1ed; font-size: clamp(.42rem,.78vw,.67rem); line-height: 1; }
 .tt-goose-cell.goose,.tt-goose-cell[data-kind="goose"] { border-color: #bce88d6e; background: linear-gradient(145deg,#50784f,#294b47); }
 .tt-goose-cell.bridge,.tt-goose-cell[data-kind="bridge"] { border-color: #73e3e879; background: linear-gradient(145deg,#285c72,#24446c); }
 .tt-goose-cell.hazard,.tt-goose-cell[data-kind="inn"],.tt-goose-cell[data-kind="well"],.tt-goose-cell[data-kind="maze"],.tt-goose-cell[data-kind="prison"] { border-color: #ffc07875; background: linear-gradient(145deg,#754b52,#453452); }
 .tt-goose-cell.death,.tt-goose-cell[data-kind="death"] { border-color: #ff6f917c; background: linear-gradient(145deg,#8d3f5b,#4d2b4d); }
 .tt-goose-cell.finish,.tt-goose-cell[data-kind="finish"] { border-color: #ffe38c; color: #fff8d5; background: linear-gradient(145deg,#927231,#544322); box-shadow: 0 0 18px #ffd77a36,inset 0 1px #fff6c5; }
 .tt-goose-token,.tt-piece { position: relative; z-index: 1; filter: drop-shadow(0 3px 3px #0009); }
-.tt-goose-token { display: flex; gap: 1px; font-size: clamp(.8rem,2vw,1.4rem); }
+.tt-goose-token { position: absolute; right: 2px; bottom: 2px; display: flex; max-width: calc(100% - 4px); flex-wrap: wrap; justify-content: flex-end; gap: 2px; font-size: clamp(.8rem,2vw,1.4rem); }
+.tt-goose-token .tt-pawn { width: clamp(19px,2.5vw,28px); border-width: 2px; font-size: clamp(.72rem,1.2vw,1rem); transform: translateY(-1px); }
+.tt-goose-token .tt-pawn.current { transform: translateY(-4px) scale(1.12); }
 .tt-goose-cell.occupied { border-color: var(--tt-cyan); box-shadow: 0 0 0 1px #75e5f757,0 0 18px #75e5f735,inset 0 1px #fff3; }
 .tt-goose-center {
   z-index: 0;
@@ -386,8 +388,11 @@
 }
 .tt-property-center strong { color: var(--tt-cyan); font-size: clamp(.6rem,1.4vw,1.05rem); }
 .tt-property-center span { max-width: 90%; margin-top: 6px; color: var(--tt-muted); font-size: clamp(.4rem,.72vw,.62rem); letter-spacing: .08em; }
-.tt-pawn { z-index: 2; display: inline-grid; width: clamp(13px,2vw,23px); aspect-ratio: 1; place-items: center; margin: 1px; border: 1px solid #fff; border-radius: 50%; color: #fff; background: radial-gradient(circle at 35% 25%,#ffd1e1,#e9518d 60%,#792758); box-shadow: 0 2px 5px #0009; font-size: clamp(.45rem,.8vw,.68rem); }
+.tt-pawn { z-index: 2; display: inline-grid; width: clamp(16px,2vw,25px); aspect-ratio: 1; place-items: center; margin: 1px; border: 2px solid #fff; border-radius: 50%; color: #fff; background: radial-gradient(circle at 35% 25%,#ffd1e1,#e9518d 60%,#792758); box-shadow: inset 0 -3px 5px #4d173b99,0 4px 7px #0009,0 0 0 1px #fff7; font-size: clamp(.68rem,1vw,.95rem); transition: transform .18s,box-shadow .18s; }
 .tt-pawn.eider { background: radial-gradient(circle at 35% 25%,#daf4ff,#5aadeb 60%,#27518d); }
+.tt-pawn.current { outline: 2px solid #ffe27d; outline-offset: 2px; box-shadow: inset 0 -3px 5px #0006,0 0 0 3px #ffd95e70,0 0 16px #ffe27d; animation: tt-pawn-pop .9s ease-in-out infinite alternate; }
+.tt-property-cell .tt-pawn { width: clamp(17px,1.8vw,22px); font-size: clamp(.65rem,.9vw,.85rem); }
+@keyframes tt-pawn-pop { to { transform: translateY(-4px) scale(1.12); } }
 .tt-deed { display: grid; gap: 7px; padding: 13px; color: var(--tt-muted); line-height: 1.4; }
 .tt-deed h3 { margin: 0; color: var(--tt-ink); font-size: 1rem; }
 .tt-deed strong { color: var(--tt-gold); }
@@ -501,6 +506,7 @@
   .tt-status,.tt-deed { padding: 11px; font-size: .85rem; }
   .tt-goose-grid { width: 100%; gap: 2px; padding: 5px; border-radius: 16px; }
   .tt-goose-cell { border-radius: 5px; }
+  .tt-goose-token .tt-pawn { width: clamp(14px,4vw,18px); border-width: 1px; font-size: .65rem; }
   .tt-parchis-yard { gap: 3%; border-radius: 18%; }
   .tt-parchis-home-lane { gap: 1px; }
   .tt-property-board { width: 100%; gap: 2px; padding: 4px; border-radius: 16px; }
@@ -526,6 +532,7 @@
 }
 
 body.reduce-motion .tt-die.rolling,
+body.reduce-motion .tt-pawn.current,
 body.reduce-motion .tt-parchis-token.selectable,
 body.reduce-motion .tt-parchis-yard button.selectable { animation: none; }
 
