@@ -215,7 +215,7 @@
 .tt-roll-button .tt-die { width: 30px; border-radius: 8px; padding: 5px; box-shadow: 0 3px 0 #8493b0; }
 .tt-roll-button .tt-pip { background: #263353; }
 .tt-dice-result { min-height: 1.25em; color: var(--tt-muted); font-size: .85rem; font-weight: 800; }
-@keyframes tt-dice-roll { from { transform: perspective(160px) rotateX(-18deg) rotateY(-16deg) translateY(-4px); } to { transform: perspective(160px) rotateX(18deg) rotateY(15deg) translateY(3px); } }
+@keyframes tt-dice-roll { from { filter: brightness(.86); box-shadow: 0 6px 0 #8493b0,0 10px 18px #050a18aa,inset 0 2px #fff; } to { filter: brightness(1.14); box-shadow: 0 10px 0 #8493b0,0 18px 28px #050a18cc,inset 0 2px #fff; } }
 
 /* The Goose: a readable spiral with distinct classic event spaces. */
 .tt-goose-grid {
@@ -539,3 +539,76 @@
 body.reduce-motion .tt-die.rolling,
 body.reduce-motion .tt-parchis-token.selectable,
 body.reduce-motion .tt-parchis-yard button.selectable { animation: none; }
+
+/* Extra named players and the touch-to-stop dice overlay. */
+.tt-score.multi { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.tt-score.multi > span.draws { grid-column: 1 / -1; }
+.tt-score > span.guest1,.tt-cash > span.guest1 { border-color: #7fdfa27c; }
+.tt-score > span.guest2,.tt-cash > span.guest2 { border-color: #ffda7a80; }
+.tt-score > span.eider { border-color: #77adff72; }
+.tt-pawn.guest1 { background: radial-gradient(circle at 35% 25%,#d6ffe0,#65c985 58%,#27794d); }
+.tt-pawn.guest2 { background: radial-gradient(circle at 35% 25%,#fff4c8,#efc451 58%,#a56e18); }
+.tt-cash.multi { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.tt-cash > span.guest1 b { color: #a9f0bc; }
+.tt-cash > span.guest2 b { color: #ffe39b; }
+.tt-extra-players { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 0; padding: 12px; border: 1px solid var(--tt-line); border-radius: 15px; background: #121c32; }
+.tt-extra-players legend { grid-column: 1 / -1; padding: 0 7px; color: var(--tt-cyan); text-align: center; font-size: .78rem; font-weight: 900; }
+.tt-extra-players label { display: grid; gap: 5px; color: var(--tt-muted); font-size: .76rem; font-weight: 800; }
+.tt-extra-players input { min-width: 0; width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #435376; border-radius: 10px; color: var(--tt-ink); background: #0d172c; font: inherit; }
+.tt-extra-players input:focus-visible { outline: 2px solid var(--tt-cyan); outline-offset: 2px; }
+.tt-parchis-yard.guest1 { top: 18%; right: 18%; border-color: #89e6aa75; background: linear-gradient(145deg,#315945,#1b3937); }
+.tt-parchis-yard.guest2 { bottom: 18%; left: 18%; border-color: #ffd77a80; background: linear-gradient(145deg,#695235,#393044); }
+.tt-parchis-token.guest1,.tt-yard-token.guest1 { background: radial-gradient(circle at 35% 25%,#d6ffe0,#65c985 58%,#27794d); }
+.tt-parchis-token.guest2,.tt-yard-token.guest2 { background: radial-gradient(circle at 35% 25%,#fff4c8,#efc451 58%,#a56e18); }
+.tt-parchis-cell.guest1 { border-color: #89e6aa; background: linear-gradient(145deg,#3c754e,#28483c); }
+.tt-parchis-cell.guest2 { border-color: #ffd77a; background: linear-gradient(145deg,#816231,#514332); }
+.tt-parchis-home-lane.guest1,.tt-parchis-home-lane.guest2 { top: 29%; left: 47.1%; width: 5.8%; height: 42%; grid-template-columns: minmax(0,1fr); grid-template-rows: repeat(7,minmax(0,1fr)); }
+.tt-parchis-home-lane.guest2 { top: auto; bottom: 29%; transform: rotate(180deg); }
+.tt-parchis-home-lane.guest1 button { border-color: #a0efb4a3; background: linear-gradient(145deg,#34704d,#244437); }
+.tt-parchis-home-lane.guest2 button { border-color: #ffe091a3; background: linear-gradient(145deg,#816231,#514332); }
+.tt-property-cell.owned-guest1 { box-shadow: inset 0 0 0 3px #42ac69; }
+.tt-property-cell.owned-guest2 { box-shadow: inset 0 0 0 3px #d7a72d; }
+.tt-die { appearance: none; padding: 10px; font: inherit; cursor: default; }
+.tt-die:disabled { opacity: 1; }
+.tt-dice-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: #070b18c9; backdrop-filter: blur(10px); }
+.tt-dice-modal { position: relative; display: grid; width: min(520px,100%); justify-items: center; gap: 12px; padding: clamp(24px,5vw,42px); border: 1px solid #b5c7ff54; border-radius: 28px; color: #fff; background: radial-gradient(ellipse at 50% 0%,#43529b 0%,#1c284a 45%,#10172b 100%); box-shadow: 0 28px 90px #000b,inset 0 1px #ffffff32; text-align: center; }
+.tt-dice-modal-kicker { color: var(--tt-cyan); font-size: .75rem; font-weight: 950; letter-spacing: .18em; text-transform: uppercase; }
+.tt-dice-modal h2 { margin: 0; font-size: clamp(1.8rem,6vw,2.7rem); }
+.tt-dice-modal p { margin: 0; color: #d3defa; font-size: 1rem; }
+.tt-dice-modal-row { display: flex; min-height: 156px; align-items: center; justify-content: center; gap: clamp(18px,6vw,42px); padding: 12px 0; }
+.tt-dice-modal .tt-die { width: clamp(112px,25vw,150px); padding: 19px; gap: 7px; border-radius: 25px; }
+.tt-dice-modal .tt-die.rolling { cursor: pointer; }
+.tt-dice-modal-close { position: absolute; top: 12px; right: 12px; display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #ffffff26; border-radius: 12px; color: #fff; background: #ffffff14; font-size: 1.1rem; cursor: pointer; }
+.tt-dice-modal-close:hover { background: #ffffff29; }
+
+/* Warm, original colors keep the familiar square board geometry readable. */
+.tt-goose-grid { border: 8px solid #f6dc78; border-radius: 30px; background: #fff8dc; box-shadow: 0 15px 30px #02071865,inset 0 0 0 2px #fff9; }
+.tt-goose-cell:not(.goose):not(.bridge):not(.inn):not(.well):not(.maze):not(.prison):not(.death):not(.finish) { color: #1d293b; }
+.tt-goose-cell.tone-0 { background: linear-gradient(145deg,#d5e9a4,#9bc771); }
+.tt-goose-cell.tone-1 { background: linear-gradient(145deg,#fff0a0,#f3cb58); }
+.tt-goose-cell.tone-2 { background: linear-gradient(145deg,#ffb077,#e8704d); }
+.tt-goose-cell.tone-3 { background: linear-gradient(145deg,#a8d7f4,#68a9dc); }
+.tt-goose-cell.goose { background: linear-gradient(145deg,#ff8590,#e34b54); }
+.tt-goose-cell small,.tt-goose-cell .tt-space-number { color: #334157; }
+.tt-goose-hero { margin: 3px 0; font-size: clamp(1.5rem,4vw,3rem); line-height: 1; filter: drop-shadow(0 4px 2px #24394d66); }
+.tt-parchis-board { border: 8px solid #efe8d5; border-radius: 12px; background: linear-gradient(145deg,#e5dfcb,#cbc4ae); box-shadow: 0 16px 32px #03081788,inset 0 0 0 2px #fff9; }
+.tt-parchis-cell { border-color: #64748b45; color: #314054; background: linear-gradient(145deg,#fffef8,#e8e5da); }
+.tt-parchis-cell.safe { border-color: #d6aa4f; color: #573e18; background: linear-gradient(145deg,#ffe8a8,#e6c46f); }
+.tt-parchis-cell.nahia { border-color: #ea759c; background: linear-gradient(145deg,#ffc6d8,#f28eaf); }
+.tt-parchis-cell.eider { border-color: #65a9e8; background: linear-gradient(145deg,#c8e6ff,#80b8ed); }
+.tt-parchis-cell.guest1 { border-color: #62bd7d; background: linear-gradient(145deg,#cff4d7,#84ce98); }
+.tt-parchis-cell.guest2 { border-color: #d9a83f; background: linear-gradient(145deg,#fff0b5,#edcc6b); }
+.tt-property-board { border: 8px solid #f1e8d6; border-radius: 12px; background: linear-gradient(145deg,#eff7dc,#cfdfb4); box-shadow: 0 16px 32px #03081788,inset 0 0 0 2px #fff9; }
+.tt-property-cell { color: #243142; border-color: #40516b42; background: linear-gradient(150deg,#fffdf5,#f3ecd9); box-shadow: inset 0 1px #fff; }
+.tt-property-cell > small { color: #3c5064; }
+.tt-property-cell[data-kind="start"],.tt-property-cell[data-kind="parking"],.tt-property-cell[data-kind="jail"],.tt-property-cell[data-kind="gotoJail"] { color: #1e3b32; background: linear-gradient(145deg,#e3f0cd,#cadfaf); }
+.tt-property-center { border-color: #66835965; color: #314b3b; background: radial-gradient(circle at 50% 40%,#f7ffe9,#d6e8c0 75%); }
+.tt-property-center span { color: #56704e; }
+
+@media (max-width: 680px) {
+  .tt-goose-center { padding: 4px; border-radius: 12px; }
+  .tt-goose-center span { margin-top: 0; font-size: .4rem; }
+  .tt-goose-hero { margin: 0; font-size: 1.25rem; }
+  .tt-goose-center strong { font-size: .68rem; line-height: 1; }
+  .tt-goose-center small { font-size: .36rem; letter-spacing: .04em; }
+}
