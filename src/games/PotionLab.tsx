@@ -5,6 +5,16 @@ import { ingredients, potionNames } from '../data/content';
 import { calculateStars, effectiveLevel, random } from '../utils/gameLogic';
 import { tr } from '../data/i18n';
 type Recipe={items:Ingredient[];name:string};
+function IngredientIcon({ingredient}:{ingredient:Ingredient}) {
+  if (ingredient.id !== 'berry') return <>{ingredient.icon}</>;
+  return <svg className="berry-illustration" viewBox="0 0 48 48" aria-hidden="true">
+    <path d="M23 18c-1-7 3-11 9-12-1 6-4 10-9 12Zm-1 0C17 12 12 12 8 14c3 5 8 7 14 4Z" fill="#4d9b57" />
+    <path d="M24 17c-8 0-14 7-14 16a14 14 0 0 0 28 0c0-9-6-16-14-16Z" fill="#6250bd" />
+    <circle cx="18" cy="27" r="5" fill="#7869d4"/><circle cx="30" cy="27" r="5" fill="#7869d4"/>
+    <circle cx="24" cy="36" r="5" fill="#5141a7"/><circle cx="17" cy="26" r="1.5" fill="#ddd8ff"/><circle cx="29" cy="26" r="1.5" fill="#ddd8ff"/>
+    <circle cx="23" cy="35" r="1.5" fill="#c8c0ff"/>
+  </svg>;
+}
 const createRecipe = (lang: Language, level: 'seed' | 'star'): Recipe => {
   const bank = ingredients(lang);
   const length = (level === 'seed' ? 3 : 5) + Math.floor(Math.random() * (level === 'seed' ? 2 : 3));
@@ -36,5 +46,5 @@ export function PotionLab({lang,difficulty,stats,profile,onComplete}:{lang:Langu
    }
  };
  const reveal=()=>{setShow(true);setReview(true);window.setTimeout(()=>setShow(false),2500);}; const turn=profile==='team'?(round%2===0?'Nahia':'Eider'):'';
- return <section className="game-shell potion-game"><div className="game-top"><div><span className="eyebrow">🧪 {tr(lang,'potionName')}</span><h2>{lang==='eu'?'Nahastu magia apur bat':'Mezcla un poquito de magia'}</h2></div><span className="counter">{round+1} / 5</span></div>{turn&&<p className="turn-pill">{tr(lang,'turn')}: <strong>{turn}</strong></p>}<div className="potion-stage"><div className={`cauldron ${added.length?'filled':''}`} style={{'--fill': recipe.items[added.length-1]?.color ?? '#a989e8'} as React.CSSProperties}><span>🫧</span><span>🫧</span><b>{added.map(x=>x.icon).join(' ')||'✨'}</b></div><div className={`recipe-card ${show?'shown':'hidden-recipe'}`}><strong>📜 {tr(lang,'recipe')}: {recipe.name}</strong><div className="recipe-line">{recipe.items.map((x,i)=><span key={i} title={x.name}>{x.icon}</span>)}</div>{!show&&<small>?</small>}</div></div><p className="instruction">{show?(lang==='eu'?'Gogoratu osagaien ordena...':'Recuerda el orden de ingredientes...'):tr(lang,'add')}</p><div className="ingredient-grid">{ingredients(lang).map(ing=><button className="ingredient" style={{borderColor:ing.color}} key={ing.id} onClick={()=>add(ing)} disabled={show||advancing}><span>{ing.icon}</span>{ing.name}</button>)}</div><button className="secondary recipe-button" disabled={show||advancing} onClick={reveal}>{tr(lang,'seeRecipe')} {review?'(☆)':'(⭐)'}</button></section>;
+ return <section className="game-shell potion-game"><div className="game-top"><div><span className="eyebrow">🧪 {tr(lang,'potionName')}</span><h2>{lang==='eu'?'Nahastu magia apur bat':'Mezcla un poquito de magia'}</h2></div><span className="counter">{round+1} / 5</span></div>{turn&&<p className="turn-pill">{tr(lang,'turn')}: <strong>{turn}</strong></p>}<div className="potion-stage"><div className={`cauldron ${added.length?'filled':''}`} style={{'--fill': recipe.items[added.length-1]?.color ?? '#a989e8'} as React.CSSProperties}><span>🫧</span><span>🫧</span><b>{added.length ? added.map((x,i)=><IngredientIcon key={`${x.id}-${i}`} ingredient={x}/>) : '✨'}</b></div><div className={`recipe-card ${show?'shown':'hidden-recipe'}`}><strong>📜 {tr(lang,'recipe')}: {recipe.name}</strong><div className="recipe-line">{recipe.items.map((x,i)=><span key={i} title={x.name}><IngredientIcon ingredient={x}/></span>)}</div>{!show&&<small>?</small>}</div></div><p className="instruction">{show?(lang==='eu'?'Gogoratu osagaien ordena...':'Recuerda el orden de ingredientes...'):tr(lang,'add')}</p><div className="ingredient-grid">{ingredients(lang).map(ing=><button className="ingredient" style={{borderColor:ing.color}} key={ing.id} onClick={()=>add(ing)} disabled={show||advancing}><span><IngredientIcon ingredient={ing}/></span>{ing.name}</button>)}</div><button className="secondary recipe-button" disabled={show||advancing} onClick={reveal}>{tr(lang,'seeRecipe')} {review?'(☆)':'(⭐)'}</button></section>;
 }
