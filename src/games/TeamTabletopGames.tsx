@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Language } from '../types';
+import diceSprite from '../assets/tabletop-dice-sprite.png';
 import './team-tabletop-games.css';
 
 type Player = 'nahia' | 'eider' | 'guest1' | 'guest2';
@@ -229,8 +230,9 @@ function boardCoordinate(index: number) {
 }
 
 function Die({ value, rolling, interactive=false, onClick }: { value: number; rolling: boolean; interactive?: boolean; onClick?:()=>void }) {
-  return <button type="button" className={`tt-die ${rolling ? 'rolling' : ''}`} data-value={value} aria-label={rolling ? 'Dado girando. Toca para detenerlo' : `Dado: ${value}`} onClick={interactive?onClick:undefined} disabled={!interactive}>
-    {Array.from({ length:9 }, (_, i) => <i className="tt-pip" key={i} />)}
+  const index = Math.max(1, Math.min(6, value)) - 1;
+  const backgroundPosition = `${index % 3 * 50}% ${Math.floor(index / 3) * 100}%`;
+  return <button type="button" className={`tt-die ${rolling ? 'rolling' : ''}`} style={{ backgroundImage:`url(${diceSprite})`, backgroundPosition }} data-value={value} aria-label={rolling ? 'Dado girando. Toca para detenerlo' : `Dado: ${value}`} onClick={interactive?onClick:undefined} disabled={!interactive}>
   </button>;
 }
 
@@ -286,6 +288,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   const nextPlayer = (player: Player) => activePlayers[(activePlayers.indexOf(player)+1)%activePlayers.length] ?? 'nahia';
   const legal = useMemo(() => legalChess(chessBoard, turn === 'nahia' ? 'w' : 'b', castleRights, enPassant), [chessBoard, turn, castleRights, enPassant]);
   const currentGame = games.find(item => item.id === game)!;
+  const diceTotal = game === 'monopoly' ? dice.reduce((sum,value) => sum+value,0) : dice[0] ?? 1;
   const gooseIndex = new Map(gooseSpiral.map((coord, index) => [`${coord.row},${coord.col}`, index]));
   const parchisMovable = useMemo(() => game === 'parchis' && parchisRoll !== null ? movableParchisPieces(parchis,turn,parchisRoll) : [], [game,parchis.pieces,parchisRoll,turn]);
 
@@ -483,7 +486,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     const roll = values.reduce((sum,value) => sum+value,0), doubles = values.length === 2 && values[0] === values[1];
     let state = { ...monopoly, positions:{ ...monopoly.positions }, cash:{ ...monopoly.cash }, jailed:{ ...monopoly.jailed }, jailAttempts:{ ...monopoly.jailAttempts }, doubles:{ ...monopoly.doubles } };
     if (state.jailed[turn]) {
-      if (doubles) { state.jailed[turn] = false; state.jailAttempts[turn] = 0; landOnMonopoly((state.positions[turn]+roll)%40,roll,false,false,state); return; }
+      if (doubles) { const destination=(state.positions[turn]+roll)%40; state.positions[turn]=destination; state.jailed[turn] = false; state.jailAttempts[turn] = 0; landOnMonopoly(destination,roll,false,false,state); return; }
       state.jailAttempts[turn] += 1;
       if (state.jailAttempts[turn] >= 3) { state.cash[turn] -= 50; state.jailed[turn] = false; state.jailAttempts[turn] = 0; setMonopoly(state); finishMonopolyAction(label('50 ordaindu duzu eta kartzelatik irten zara.', 'Has pagado 50 y sales de la cárcel.')); return; }
       setMonopoly(state); setExtraMonopolyTurn(false); finishMonopolyAction(`${playerName(turn)} ${label('kartzelan jarraitzen du; bikoitzak behar dira.', 'sigue en pausa; necesitas dobles para salir.')}`); return;
@@ -495,7 +498,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     }
     const old = state.positions[turn], raw = old+roll, destination = raw%40;
     state.positions[turn] = destination; setMonopoly(state);
-    landOnMonopoly(destination,roll,raw>=40,doubles);
+    landOnMonopoly(destination,roll,raw>=40,doubles,state);
   }
 
   function buyMonopolyProperty() {
@@ -546,13 +549,19 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   }
 
   function rollDice() {
-    if (!starter || rolling || message || finished || (game === 'parchis' && parchisRoll !== null)) return;
+    if (!starter || rolling || finished || (game === 'parchis' && parchisRoll !== null) || (game === 'monopoly' && (monopolyOffer !== null || auction !== null))) return;
+    let roller = turn;
+    if (game === 'monopoly' && (monopolyEnding || auctionResolved)) {
+      setMonopolyEnding(false); setAuctionResolved(false); setMonopolyLastTile(null);
+      if (extraMonopolyTurn) setExtraMonopolyTurn(false); else { roller = nextPlayer(turn); setTurn(roller); }
+    }
+    setMessage('');
     if (game === 'goose' && goose.skips[turn] > 0) {
       const skip = goose.skips[turn]; setGoose(current => ({ ...current,skips:{...current.skips,[turn]:skip-1} })); passTurn(`${playerName(turn)} ${label('txanda galdu du.', 'pierde este turno.')}`); return;
     }
     const count = game === 'monopoly' ? 2 : 1;
     setDice(Array.from({length:count}, () => 1+Math.floor(Math.random()*6)));
-    setDicePlayer(turn);
+    setDicePlayer(roller);
     setRolling(true);
     setDiceModalOpen(true);
     rollTimer.current = window.setInterval(() => setDice(Array.from({length:count}, () => 1+Math.floor(Math.random()*6))), 110);
@@ -566,15 +575,6 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
     if (game === 'goose') moveGoose(values[0]);
     else if (game === 'parchis') rollParchis(values[0]);
     else if (game === 'monopoly') rollMonopoly(values);
-  }
-
-  function continueTurn() {
-    setMessage('');
-    if (game === 'monopoly') {
-      if (auction) return;
-      if (auctionResolved) { setAuctionResolved(false); setMonopolyEnding(false); setMonopolyLastTile(null); if (extraMonopolyTurn) setExtraMonopolyTurn(false); else setTurn(current => nextPlayer(current)); return; }
-      if (monopolyEnding) { setMonopolyEnding(false); setMonopolyLastTile(null); if (extraMonopolyTurn) setExtraMonopolyTurn(false); else setTurn(current => nextPlayer(current)); }
-    }
   }
 
   function monopolyTileClass(tile: PropertyTile, index: number) {
@@ -595,7 +595,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   const parchisTokensAt = (absolute: number) => activePlayers.flatMap(player => parchis.pieces[player].map((position,index) => ({player,index,position})).filter(token => token.position >= 0 && token.position < 63 && (parchisStarts[player]+token.position)%68 === absolute));
 
   const propertyCenter = <div className="tt-property-center" style={{ gridRow:'2 / 11',gridColumn:'2 / 11' }}>
-    <span>✦ CITY LIFE ✦</span><strong>AURORA<br/>DISTRICT</strong><small>{label('Jokalari bakoitzak aukera bat du.', 'Cada turno crea una nueva oportunidad.')}</small>
+    <span>✦ CITY LIFE ✦</span><strong>AURORA<br/>DISTRICT</strong>
     <div className="tt-center-pawns">{activePlayers.map(player => <b className={`tt-pawn ${player}`} key={player}>{pawnIcon(player)} {playerName(player)}</b>)}</div>
   </div>;
 
@@ -604,14 +604,6 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
   const groupIsComplete = !!deedTile?.group && propertyTiles.map((tile,index) => tile.group === deedTile.group ? index : -1).filter(index => index >= 0).every(index => monopoly.owners[index] === turn);
   const houseCost = deedTile?.group ? groupHouses[deedTile.group] : 0;
   const canBuildHouse = !!deedTile?.group && groupIsComplete && monopoly.owners[propertyDeedIndex!] === turn && monopoly.houses[propertyDeedIndex!] < 5 && monopoly.houses[propertyDeedIndex!] <= Math.min(...propertyTiles.map((tile,index) => tile.group === deedTile.group ? monopoly.houses[index] : Infinity)) && monopoly.cash[turn] >= houseCost;
-
-  const rules: Record<Game,[string,string]> = {
-    goose:['Bota dado bakarra. Antzara batean erortzen bazara, egin berriro dadoaren kopurua; zubiak aurrera eramaten zaitu. Ostatuak, putzuak eta kartzelak txandak kentzen dituzte. 63ra zenbaki zehatzarekin iritsi behar da.','Tira un dado. Si caes en una oca, avanza otra vez lo mismo; los puentes te desplazan. La posada, el pozo y la cárcel hacen perder turnos. Hay que llegar al 63 con número exacto.'],
-    parchis:['Jokalari bakoitzak lau fitxa ditu. 5arekin atera; 6ak beste dado bat ematen du. Harrapatu aurkariaren fitxak eta iritsi helmugara lau fitxekin.','Cada persona tiene cuatro fichas. Con un 5 sacas ficha; el 6 te da otra tirada. Captura a las demás y lleva tus cuatro fichas a la meta.'],
-    connect:['Txandaka bota pieza bat zutabe batera. Lau jarraian lotzen dituen lehenak irabazten du.','Dejad caer una ficha por turno. Gana quien conecte cuatro seguidas.'],
-    chess:['Mugitu pieza arauen arabera, babestu erregea eta egin xake-mate. Enrokea, aldi bateko harrapaketa eta peoiaren dama-aldaketa daude.','Mueve las piezas según sus reglas, protege al rey y da jaque mate. Hay enroque, captura al paso y promoción del peón.'],
-    monopoly:['Erosi kaleak, kobratu alokairua, osatu kolore multzoak eta eraiki. Irteeratik pasatzean 200 jasotzen dira; kartzelatik bikoitzekin, ordainduta edo hiru txandaren ondoren atera daiteke.','Compra calles, cobra alquileres, completa grupos de color y construye. Al pasar por salida cobras 200; puedes salir de la pausa con dobles, pagando o tras tres turnos.'],
-  };
 
   return <section ref={root} className="team-tabletop-games tt-shell">
     <header className="tt-header">
@@ -656,12 +648,10 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
         </div>}
       </div>
       <aside className="tt-sidepanel">
-        <div className="tt-rule-card"><span>{label('NOLA JOKATU','CÓMO SE JUEGA')}</span><p>{eu ? rules[game][0] : rules[game][1]}</p></div>
-        <div className="tt-turn-card"><small>{label('ORAINGO TXANDA','TURNO ACTUAL')}</small><strong className={turn}>{pawnIcon(turn)} {playerName(turn)}</strong>{message && <p className="tt-status-text">{message}</p>}</div>
-        {game !== 'connect' && game !== 'chess' && <div className="tt-dice-panel"><h3>{game === 'monopoly' ? label('BI DADO','DOS DADOS') : label('DADOA','EL DADO')} <span className="tt-dice-result">{dice.reduce((sum,value)=>sum+value,0)}</span></h3><div className="tt-dice-row">{(game === 'monopoly' ? dice : dice.slice(0,1)).map((value,index)=><Die key={`${game}-${index}`} value={value} rolling={rolling} />)}</div>{starter && !finished && <button type="button" className="tt-roll-button" onClick={rollDice} disabled={rolling || !!message || (game === 'parchis' && parchisRoll !== null)}>{rolling ? label('DADOAK MUGITZEN...','TIRANDO...') : game === 'goose' && goose.skips[turn] > 0 ? label('TXANDA PASATU','PERDER TURNO') : game === 'parchis' && parchisRoll !== null ? label('AUKERATU FITXA','ELIGE FICHA') : label('BOTA DADOA','LANZAR DADOS')}</button>}
+        <div className="tt-turn-card"><strong className={`tt-turn-name-pill ${turn}`}>{pawnIcon(turn)} {playerName(turn)}</strong></div>
+        {game !== 'connect' && game !== 'chess' && <div className="tt-dice-panel"><h3>{game === 'monopoly' ? label('BI DADO','DOS DADOS') : label('DADOA','EL DADO')} <span className="tt-dice-result">{diceTotal}</span></h3><div className="tt-dice-row">{(game === 'monopoly' ? dice : dice.slice(0,1)).map((value,index)=><Die key={`${game}-${index}`} value={value} rolling={rolling} />)}</div>{starter && !finished && <button type="button" className="tt-roll-button" onClick={rollDice} disabled={rolling || (game === 'parchis' && parchisRoll !== null) || (game === 'monopoly' && (monopolyOffer !== null || !!auction))}>{rolling ? label('DADOAK MUGITZEN...','TIRANDO...') : game === 'goose' && goose.skips[turn] > 0 ? label('TXANDA PASATU','PERDER TURNO') : game === 'parchis' && parchisRoll !== null ? label('AUKERATU FITXA','ELIGE FICHA') : label('BOTA DADOA','LANZAR DADOS')}</button>}
           {game === 'parchis' && parchisRoll !== null && <small className="tt-pick-hint">{parchisBonus ? `${label('Harrapaketagatik','Por captura')}: +${parchisRoll}` : `${label('Aukeratu mugitu beharreko fitxa','Elige ficha para mover')}: ${parchisRoll}`}</small>}
         </div>}
-        {game === 'parchis' && <p className="tt-small-note">{label('4 fitxa jokalari bakoitzeko','4 fichas por jugadora')} · {label('5arekin atera','sale con 5')} · {label('6ak beste tirada ematen du','el 6 da otra tirada')}</p>}
         {!starter && (game === 'goose' || game === 'parchis' || game === 'monopoly') && <fieldset className="tt-extra-players"><legend>{label('Gehitu gehienez 2 jokalari','Añade hasta 2 personas más')}</legend>{(['guest1','guest2'] as const).map((player,index)=><label key={player}>{label(`Jokalaria ${index+3}`,`Persona ${index+3}`)}<input type="text" maxLength={16} value={extraNames[player]} placeholder={label('Idatzi izena','Escribe un nombre')} onChange={event=>setExtraNames(current=>({...current,[player]:event.target.value}))}/></label>)}</fieldset>}
         {!starter && <fieldset className="tt-starter"><legend>{label('Nork hasiko da?','¿Quién empieza?')}</legend>{activePlayers.map(player => <button type="button" key={player} className={player} onClick={() => start(player)}>{pawnIcon(player)} {playerName(player)}</button>)}</fieldset>}
         {game === 'monopoly' && <div className={`tt-cash ${activePlayers.length>2?'multi':''}`}>{activePlayers.map(player=><span className={player} key={player}>{pawnIcon(player)} {playerName(player)} <b>{monopoly.cash[player]} €</b>{monopoly.jailed[player]&&<small>{label('Pausan','En pausa')}</small>}</span>)}</div>}
@@ -670,8 +660,7 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
           {canBuildHouse && <button className="tt-action secondary" onClick={() => buildHouse(propertyDeedIndex)}>{label('ETXEA ERAIKI','CONSTRUIR CASA')} · {houseCost} €</button>}
         </div>}
         {game === 'monopoly' && auction && <div className="tt-auction"><small>{label('ENKANTEA','SUBASTA')}</small><h3>{propertyTiles[auction.tile].name}</h3><p>{auction.bidder ? `${playerName(auction.bidder)} · ${auction.bid} €` : label('Oraindik eskaintzarik ez.','Sin pujas todavía.')}</p><strong>{label('Eskaintza','Turno de')}: {playerName(auction.next)}</strong><div><button className="tt-action primary" onClick={bidMonopoly}>{label('ESKAINI','PUJAR')} · {auction.bid+10} €</button><button className="tt-action secondary" onClick={passAuction}>{label('PASATU','PASAR')}</button></div></div>}
-        {game === 'monopoly' && monopoly.jailed[turn] && starter && !message && <button className="tt-action secondary" onClick={() => { const next={...monopoly,cash:{...monopoly.cash},jailed:{...monopoly.jailed},jailAttempts:{...monopoly.jailAttempts}}; if(next.cash[turn]>=50){next.cash[turn]-=50;next.jailed[turn]=false;next.jailAttempts[turn]=0;setMonopoly(next);setMessage('');setMonopolyEnding(false);} }}>{label('50 ORDAINDU ETA JOLASTU','PAGAR 50 Y SEGUIR')}</button>}
-        {message && !finished && !auction && !monopolyOffer && (game !== 'monopoly' || monopolyEnding || auctionResolved) && <button type="button" className="tt-action continue" onClick={continueTurn}>{label('JARRAITU','CONTINUAR')} →</button>}
+        {game === 'monopoly' && monopoly.jailed[turn] && starter && <button className="tt-action secondary" onClick={() => { const next={...monopoly,cash:{...monopoly.cash},jailed:{...monopoly.jailed},jailAttempts:{...monopoly.jailAttempts}}; if(next.cash[turn]>=50){next.cash[turn]-=50;next.jailed[turn]=false;next.jailAttempts[turn]=0;setMonopoly(next);setMessage('');setMonopolyEnding(false);setAuctionResolved(false);} }}>{label('50 ORDAINDU ETA JOLASTU','PAGAR 50 Y SEGUIR')}</button>}
         {finished && <div className="tt-finished"><strong>{message}</strong><button type="button" className="tt-action primary" onClick={() => resetGame(game)}>{label('BERRIRO JOLASTU','JUGAR OTRA VEZ')}</button></div>}
       </aside>
     </section>
@@ -679,9 +668,8 @@ export function TeamTabletopGames({ lang, onExit }: { lang: Language; onExit: ()
       {!rolling && <button type="button" className="tt-dice-modal-close" aria-label={label('Itxi','Cerrar')} onClick={()=>setDiceModalOpen(false)}>✕</button>}
       <span className="tt-dice-modal-kicker">{label('TXANDA','TURNO')} · {playerName(dicePlayer ?? turn)}</span>
       <h2 id="tt-dice-title">{rolling ? label('Bota dadoa','Tira el dado') : label('Emaitza','Resultado')}</h2>
-      <p>{rolling ? label('Ukitu dadoa gelditzeko','Toca el dado para detenerlo') : `${label('Atera duzu','Has sacado')} ${dice.reduce((sum,value)=>sum+value,0)}`}</p>
+      <p>{rolling ? label('Ukitu dadoa gelditzeko','Toca el dado para detenerlo') : `${label('Atera duzu','Has sacado')} ${diceTotal}`}</p>
       <div className="tt-dice-modal-row">{(game==='monopoly'?dice:dice.slice(0,1)).map((value,index)=><Die key={`modal-${index}`} value={value} rolling={rolling} interactive={rolling} onClick={stopDice}/>)}</div>
-      {!rolling && <button type="button" className="tt-action primary" onClick={()=>setDiceModalOpen(false)}>{label('JARRAITU','CONTINUAR')} →</button>}
     </section></div>}
   </section>;
 }
