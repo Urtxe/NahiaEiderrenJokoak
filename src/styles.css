@@ -669,9 +669,8 @@ button:focus-visible {
   letter-spacing: 6px;
   margin: 12px;
 }
-.hidden-recipe .recipe-line {
-  filter: blur(7px);
-}
+.hidden-recipe .recipe-line > span { filter: blur(7px); }
+.hidden-recipe .recipe-line > span:has(.berry-illustration) { filter: none; }
 .instruction {
   text-align: center;
   font-weight: 800;
@@ -696,6 +695,12 @@ button:focus-visible {
   display: block;
   font-size: 2rem;
 }
+.berry-illustration { display: inline-block; width: 1.2em; height: 1.2em; vertical-align: middle; overflow: visible; }
+.recipe-line .berry-illustration { width: 1.25em; height: 1.25em; }
+.cauldron b { display: flex; justify-content: center; align-items: center; align-content: center; flex-wrap: wrap; gap: 1px; max-height: 65%; line-height: 1; overflow: hidden; }
+.cauldron b .berry-illustration { width: 1.15em; height: 1.15em; }
+.ingredient .berry-illustration { width: 1em; height: 1em; }
+.profile-level-note { margin: -9px 0 22px; color: #706782; font-weight: 800; }
 .ingredient:disabled {
   opacity: 0.45;
   cursor: not-allowed;

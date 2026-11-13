@@ -1,6 +1,6 @@
 .board-game { max-width: 760px; margin-inline: auto; }
 .board-game-help { margin: 12px auto 18px; max-width: 680px; color: #605b70; line-height: 1.55; text-align: center; }
-.checkers-board { width: min(100%, 520px); aspect-ratio: 1; margin: 16px auto; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); border: 5px solid #76533c; border-radius: 14px; overflow: hidden; box-shadow: 0 9px 24px #4733202b; touch-action: manipulation; }
+.checkers-board { box-sizing: border-box; width: min(100%, 520px); height: auto; aspect-ratio: 1 / 1; margin: 16px auto; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); align-content: stretch; border: 5px solid #76533c; border-radius: 14px; overflow: hidden; box-shadow: 0 9px 24px #4733202b; touch-action: manipulation; }
 .checkers-square { position: relative; border: 0; padding: 0; display: grid; place-items: center; min-width: 0; min-height: 0; }
 .checkers-square.light { background: #f2dfbd; }
 .checkers-square.dark { background: #a86f49; }
